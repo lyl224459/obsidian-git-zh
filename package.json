@@ -1,6 +1,6 @@
 {
     "name": "obsidian-git-zh",
-    "version": "2.36.1-zh",
+    "version": "2.36.1",
     "description": "Obsidian Git 插件中文版 - Integrate Git version control with automatic backup and other advanced features in Obsidian.md (Chinese Localized)",
     "main": "main.js",
     "scripts": {

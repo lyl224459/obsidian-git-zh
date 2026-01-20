@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.36.1](https://github.com/lyl224459/obsidian-git-zh/compare/v2.36.1-zh...v2.36.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* 补充遗漏的翻译文本，完成100%汉化 ([47549a1](https://github.com/lyl224459/obsidian-git-zh/commit/47549a12b4378b26f1a9c385858f85174de09c38))
+
 ### [2.36.1](https://github.com/Vinzent03/obsidian-git/compare/2.36.0...2.36.1) (2026-01-11)
 
 

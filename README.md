@@ -53,20 +53,26 @@
 
 ## 🚀 快速开始
 
-### 安装
+### 安装方法
 
-1. 在 Obsidian 设置中打开"社区插件"
-2. 搜索"Obsidian Git"
-3. 点击"安装"
-4. 安装后启用插件
+#### 方式一：从 GitHub 下载（推荐）
+
+1. 访问 [Releases 页面](https://github.com/lyl224459/obsidian-git-zh/releases)
+2. 下载最新版本的 `main.js`、`manifest.json`、`styles.css`
+3. 复制到你的 vault 目录：`你的笔记库/.obsidian/plugins/obsidian-git-zh/`
+4. 在 Obsidian 设置中启用插件
+
+#### 方式二：手动安装
+
+详细的安装步骤请参阅 **[安装指南 INSTALL.md](INSTALL.md)**
 
 ### 基本配置
 
 1. **设置语言**：打开插件设置，在顶部选择"简体中文"
-2. **配置 Git**：确保您的笔记库已初始化为 Git 仓库
+2. **配置 Git**：使用命令 `Git: 初始化仓库` 或 `Git: 克隆仓库`
 3. **设置自动同步**：在插件设置中配置自动提交和推送间隔
 
-详细配置说明请参阅[入门指南](docs/Getting%20Started.md)。
+详细配置说明请参阅 [中文使用指南](CHINESE_VERSION.md)。
 
 ## 🎮 常用命令
 

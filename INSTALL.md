@@ -75,7 +75,7 @@ obsidian-git-zh
 ```
 
 **从哪里复制**：
-- 如果已构建：从项目根目录复制
+- 如果已构建：从项目的 `dist/` 目录复制
 - 如果从 GitHub 下载：从 Release 页面下载
 
 **目标位置**：
@@ -129,11 +129,14 @@ cd obsidian-git-zh
 # 2. 安装依赖
 pnpm install
 
-# 3. 构建
+# 3. 构建（会在 dist/ 目录生成文件）
 pnpm run build
 
-# 4. 复制文件到 Obsidian 插件目录
-# (按照方法二的步骤操作)
+# 4. 查看构建文件
+ls -lh dist/
+
+# 5. 复制 dist/ 目录下的文件到 Obsidian 插件目录
+# (按照方法二的步骤操作，从 dist/ 目录复制)
 ```
 
 ---

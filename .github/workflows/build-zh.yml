@@ -1,0 +1,112 @@
+name: 构建测试（中文版）
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: 🔨 构建测试
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 🔨 构建项目
+        run: |
+          echo "🔨 构建 Obsidian Git 中文版..."
+          pnpm run build
+          echo "✅ 构建完成！"
+
+      - name: 📊 验证构建
+        run: |
+          echo "📦 检查构建文件..."
+          test -f dist/main.js && echo "✅ main.js 存在" || exit 1
+          test -f dist/manifest.json && echo "✅ manifest.json 存在" || exit 1
+          test -f dist/styles.css && echo "✅ styles.css 存在" || exit 1
+          
+          echo ""
+          echo "📏 文件大小:"
+          ls -lh dist/
+          
+          echo ""
+          echo "✅ 所有构建文件验证通过！"
+
+      - name: 📤 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: obsidian-git-zh-build
+          path: dist/
+          retention-days: 7
+
+  lint:
+    name: 🔍 代码检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 🔍 ESLint 检查
+        run: pnpm run lint
+        continue-on-error: true
+
+      - name: 💅 Prettier 格式检查
+        run: pnpm run format
+        continue-on-error: true
+
+  type-check:
+    name: 📝 类型检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 🔎 Svelte 检查
+        run: pnpm run svelte
+        continue-on-error: true

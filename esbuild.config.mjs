@@ -70,7 +70,7 @@ const context = await esbuild.context({
         }),
     ],
     inject: ["polyfill_buffer.js"],
-    outfile: "main.js",
+    outfile: prod ? "dist/main.js" : "main.js",
 });
 
 if (prod) {

@@ -5,11 +5,12 @@
     "main": "main.js",
     "scripts": {
         "dev": "node esbuild.config.mjs dev",
-        "build": "node esbuild.config.mjs production",
-        "build:clean": "node -e \"require('fs').rmSync('main.js', {force:true})\" && pnpm run build",
+        "build": "node esbuild.config.mjs production && pnpm run copy-files",
+        "build:clean": "pnpm run clean && pnpm run build",
         "build:fast": "node esbuild.config.mjs production",
-        "prebuild": "node -e \"console.log('🧹 清理旧构建文件...')\" && node -e \"require('fs').existsSync('main.js') && require('fs').rmSync('main.js')\"",
-        "postbuild": "node -e \"console.log('✨ 构建完成！文件大小:')\" && node -e \"const s=require('fs').statSync('main.js').size;console.log(`📦 main.js: ${(s/1024).toFixed(2)} KB`)\"",
+        "prebuild": "node -e \"console.log('🧹 准备构建...')\" && node -e \"const fs=require('fs');fs.existsSync('dist')||fs.mkdirSync('dist')\"",
+        "postbuild": "node -e \"console.log('✨ 构建完成！文件大小:')\" && node -e \"const s=require('fs').statSync('dist/main.js').size;console.log(`📦 dist/main.js: ${(s/1024).toFixed(2)} KB`)\"",
+        "copy-files": "node -e \"const fs=require('fs');['manifest.json','styles.css'].forEach(f=>fs.copyFileSync(f,'dist/'+f));console.log('📋 已复制配置文件到 dist/')\"",
         "release": "standard-version",
         "lint": "eslint src",
         "lint:fix": "eslint src --fix",
@@ -20,7 +21,8 @@
         "check": "pnpm run tsc && pnpm run svelte",
         "all": "pnpm run tsc && pnpm run svelte && pnpm run format && pnpm run lint",
         "prepare": "node -e \"console.log('📦 准备开发环境...')\"",
-        "clean": "node -e \"require('fs').rmSync('main.js', {force:true});require('fs').rmSync('main.js.map', {force:true});console.log('🧹 清理完成！')\""
+        "clean": "node -e \"const fs=require('fs');['main.js','main.js.map','dist'].forEach(p=>fs.rmSync(p,{force:true,recursive:true}));console.log('🧹 清理完成！')\"",
+        "package": "pnpm run build && cd dist && tar -czf ../obsidian-git-zh.tar.gz * && cd .. && echo 📦 已创建 obsidian-git-zh.tar.gz"
     },
     "keywords": [
         "obsidian",

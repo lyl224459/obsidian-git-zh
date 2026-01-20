@@ -1,0 +1,99 @@
+name: 构建并发布中文版
+
+on:
+  push:
+    tags:
+      - "v*-zh"  # 例如: v2.36.1-zh
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  PLUGIN_NAME: obsidian-git-zh
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 🔨 构建项目
+        run: |
+          echo "🔨 开始构建 Obsidian Git 中文版..."
+          pnpm run build
+          echo "✅ 构建完成！"
+
+      - name: 📊 显示构建信息
+        run: |
+          echo "📦 构建文件:"
+          ls -lh dist/
+          echo ""
+          echo "📏 文件大小:"
+          du -h dist/*
+
+      - name: 📦 创建发布包
+        run: |
+          cd dist
+          zip -r ../obsidian-git-zh-${{ github.ref_name }}.zip *
+          cd ..
+          echo "✅ 已创建 ZIP 包"
+
+      - name: 🚀 创建 GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Obsidian Git 中文版 ${{ github.ref_name }}
+          body: |
+            ## 🌏 Obsidian Git 插件中文版
+            
+            ### ✨ 主要特性
+            - 🇨🇳 **完整中文界面** - 所有命令、设置、通知均已翻译
+            - 🌐 **智能语言切换** - 支持中英文自由切换
+            - 📖 **中文文档** - 完整的中文使用指南
+            
+            ### 📦 安装方法
+            
+            **方式一：下载 ZIP 包（推荐）**
+            1. 下载 `obsidian-git-zh-${{ github.ref_name }}.zip`
+            2. 解压到 `你的笔记库/.obsidian/plugins/obsidian-git-zh/`
+            3. 在 Obsidian 设置中启用插件
+            4. 选择语言为"简体中文"
+            
+            **方式二：下载单个文件**
+            1. 下载 `main.js`、`manifest.json`、`styles.css`
+            2. 复制到 `你的笔记库/.obsidian/plugins/obsidian-git-zh/`
+            3. 在 Obsidian 设置中启用插件
+            
+            详细安装说明请查看 [INSTALL.md](https://github.com/lyl224459/obsidian-git-zh/blob/master/INSTALL.md)
+            
+            ### 📊 版本信息
+            - 基于原版: v2.36.1
+            - 中文版本: ${{ github.ref_name }}
+            - 构建日期: ${{ github.event.head_commit.timestamp }}
+            
+            ### 🔗 相关链接
+            - [使用指南](https://github.com/lyl224459/obsidian-git-zh/blob/master/CHINESE_VERSION.md)
+            - [汉化说明](https://github.com/lyl224459/obsidian-git-zh/blob/master/LOCALIZATION_CN.md)
+            - [构建文档](https://github.com/lyl224459/obsidian-git-zh/blob/master/BUILD.md)
+          draft: false
+          prerelease: false
+          files: |
+            dist/main.js
+            dist/manifest.json
+            dist/styles.css
+            obsidian-git-zh-${{ github.ref_name }}.zip

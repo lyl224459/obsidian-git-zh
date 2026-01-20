@@ -36,15 +36,15 @@ export function initI18n(locale?: string): void {
 /**
  * 从嵌套对象获取值
  */
-function getNestedValue(obj: any, path: string): any {
-    return path.split(".").reduce((current, key) => current?.[key], obj);
+function getNestedValue(obj: unknown, path: string): unknown {
+    return path.split(".").reduce((current: any, key) => current?.[key], obj);
 }
 
 /**
  * 替换字符串中的变量
  * 例如: "Hello {{name}}" with { name: "World" } => "Hello World"
  */
-function interpolate(template: string, variables?: Record<string, any>): string {
+function interpolate(template: string, variables?: Record<string, string | number>): string {
     if (!variables) return template;
     
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
@@ -58,7 +58,7 @@ function interpolate(template: string, variables?: Record<string, any>): string 
  * @param variables - 用于插值的变量对象
  * @returns 翻译的文本或键本身（如果未找到翻译）
  */
-export function t(key: TranslationKey, variables?: Record<string, any>): string {
+export function t(key: TranslationKey, variables?: Record<string, string | number>): string {
     const translation = locales[currentLocale] || locales.en;
     const value = getNestedValue(translation, key);
     

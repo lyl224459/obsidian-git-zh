@@ -10,7 +10,6 @@ import { getNewLeaf, splitRemoteBranch } from "./utils";
 import { GeneralModal } from "./ui/modals/generalModal";
 import type { DiffViewState } from "./types";
 import { t } from "./i18n";
-import { t } from "./i18n";
 
 export default class Tools {
     constructor(private readonly plugin: ObsidianGit) {}

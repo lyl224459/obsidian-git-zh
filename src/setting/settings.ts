@@ -30,7 +30,7 @@ import type {
     SyncMethod,
 } from "src/types";
 import { convertToRgb, formatMinutes, rgbToString } from "src/utils";
-import { t, setLocale, getAvailableLocales } from "src/i18n";
+import { t, setLocale } from "src/i18n";
 
 const FORMAT_STRING_REFERENCE_URL =
     "https://momentjs.com/docs/#/parsing/string-format/";

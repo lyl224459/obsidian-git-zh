@@ -29,6 +29,7 @@ out/
 # ===================================
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+.tsbuildinfo
 
 # ===================================
 # IDE 和编辑器

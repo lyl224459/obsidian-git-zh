@@ -1,21 +1,48 @@
 {
-    "name": "obsidian-git",
-    "version": "2.36.1",
-    "description": "Integrate Git version control with automatic backup and other advanced features in Obsidian.md",
+    "name": "obsidian-git-zh",
+    "version": "2.36.1-zh",
+    "description": "Obsidian Git 插件中文版 - Integrate Git version control with automatic backup and other advanced features in Obsidian.md (Chinese Localized)",
     "main": "main.js",
     "scripts": {
         "dev": "node esbuild.config.mjs dev",
         "build": "node esbuild.config.mjs production",
+        "build:clean": "node -e \"require('fs').rmSync('main.js', {force:true})\" && pnpm run build",
+        "build:fast": "node esbuild.config.mjs production",
+        "prebuild": "node -e \"console.log('🧹 清理旧构建文件...')\" && node -e \"require('fs').existsSync('main.js') && require('fs').rmSync('main.js')\"",
+        "postbuild": "node -e \"console.log('✨ 构建完成！文件大小:')\" && node -e \"const s=require('fs').statSync('main.js').size;console.log(`📦 main.js: ${(s/1024).toFixed(2)} KB`)\"",
         "release": "standard-version",
         "lint": "eslint src",
+        "lint:fix": "eslint src --fix",
         "format": "prettier --check src",
+        "format:fix": "prettier --write src",
         "tsc": "tsc --noEmit",
         "svelte": "svelte-check",
-        "all": "pnpm run tsc && pnpm run svelte && pnpm run format && pnpm run lint"
+        "check": "pnpm run tsc && pnpm run svelte",
+        "all": "pnpm run tsc && pnpm run svelte && pnpm run format && pnpm run lint",
+        "prepare": "node -e \"console.log('📦 准备开发环境...')\"",
+        "clean": "node -e \"require('fs').rmSync('main.js', {force:true});require('fs').rmSync('main.js.map', {force:true});console.log('🧹 清理完成！')\""
     },
-    "keywords": [],
-    "author": "Vinzent03",
+    "keywords": [
+        "obsidian",
+        "git",
+        "version-control",
+        "backup",
+        "sync",
+        "chinese",
+        "中文",
+        "i18n",
+        "localization"
+    ],
+    "author": "Vinzent03 (原作者), lyl224459 (中文版)",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lyl224459/obsidian-git-zh.git"
+    },
+    "bugs": {
+        "url": "https://github.com/lyl224459/obsidian-git-zh/issues"
+    },
+    "homepage": "https://github.com/lyl224459/obsidian-git-zh#readme",
     "standard-version": {
         "t": ""
     },

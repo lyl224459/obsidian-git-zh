@@ -20,11 +20,23 @@
             "ES7"
         ],
         "skipLibCheck": true,
-        "noUnusedLocals": false
+        "noUnusedLocals": false,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "forceConsistentCasingInFileNames": true,
+        "incremental": true,
+        "tsBuildInfoFile": ".tsbuildinfo"
     },
     "include": [
         "**/*.ts",
         "eslint.config.mjs",
         "**/*.svelte"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "build",
+        "**/*.spec.ts",
+        "**/*.test.ts"
     ]
 }

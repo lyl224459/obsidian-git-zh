@@ -1,139 +1,184 @@
-# Obsidian Git Plugin
+# Obsidian Git 插件 - 中文版
 
-A powerful community plugin for [Obsidian.md](Obsidian.md) that brings Git integration right into your vault. Automatically commit, pull, push, and see your changes — all within Obsidian.
+一个强大的 Obsidian.md 社区插件，将 Git 版本控制集成到您的笔记库中。自动提交、拉取、推送，并在 Obsidian 内查看所有更改。
 
-## 📚 Documentation
+> **🌏 完全汉化版本** - 本版本提供完整的简体中文界面和文档
 
-All setup instructions (including mobile), common issues, tips, and advanced configuration can be found in the 📖 [full documentation](https://publish.obsidian.md/git-doc).
+[![GitHub release](https://img.shields.io/github/v/release/Vinzent03/obsidian-git)](https://github.com/Vinzent03/obsidian-git/releases)
+[![License](https://img.shields.io/github/license/Vinzent03/obsidian-git)](LICENSE)
 
-> Mobile users: The plugin is **highly unstable ⚠️ !** Please check the dedicated [Mobile](#-mobile-support-%EF%B8%8F--experimental) section below.
+## 📚 文档
 
-## Key Features
+完整的安装说明（包括移动端）、常见问题、技巧和高级配置，请参阅 [完整文档](docs/Start%20here.md)。
 
-- 🔁 **Automatic commit-and-sync** (commit, pull, and push) on a schedule.
-- 📥 **Auto-pull on Obsidian startup**
-- 📂 **Submodule support** for managing multiple repositories (desktop only and opt-in)
-- 🔧 **Source Control View** to stage/unstage, commit and diff files - Open it with the `Open source control view` command.
-- 📜 **History View** for browsing commit logs and changed files - Open it with the `Open history view` command.
-- 🔍 **Diff View** for viewing changes in a file - Open it with the `Open diff view` command.
-- 📝 **Signs in the editor** to indicate added, modified, and deleted lines/hunks (desktop only).
-- GitHub integration to open files and history in your browser
+> **移动端用户**：该插件在移动端**高度不稳定 ⚠️**！请查看下方的移动端专属部分。
 
-> For detailed file history, consider pairing this plugin with the [Version History Diff](obsidian://show-plugin?id=obsidian-version-history-diff) plugin.
+## ✨ 主要功能
 
-## UI Previews
+* 🔁 **自动提交并同步** - 按计划自动提交、拉取和推送
+* 📥 **启动时自动拉取** - Obsidian 启动时自动拉取最新更改
+* 📂 **子模块支持** - 管理多个仓库（仅桌面端，需手动启用）
+* 🔧 **源代码管理视图** - 暂存/取消暂存、提交和查看文件差异 - 使用 `打开源代码管理视图` 命令打开
+* 📜 **历史记录视图** - 浏览提交日志和更改的文件 - 使用 `打开历史记录视图` 命令打开
+* 🔍 **差异视图** - 查看文件的更改内容 - 使用 `打开差异视图` 命令打开
+* 📝 **编辑器标记** - 在编辑器中显示新增、修改和删除的行/块（仅桌面端）
+* 🌐 **GitHub 集成** - 在浏览器中打开文件和历史记录
+* 🇨🇳 **完整中文支持** - 所有界面、设置和通知均已翻译
 
-### 🔧 Source Control View
+## 🖼️ 界面预览
 
-Manage your file changes directly inside Obsidian like stage/unstage individual files and commit them.
+### 🔧 源代码管理视图
 
-![Source Control View](https://raw.githubusercontent.com/Vinzent03/obsidian-git/master/images/source-view.png)
+在 Obsidian 内直接管理文件更改，例如暂存/取消暂存单个文件并提交。
 
-### 📜 History View
+![源代码管理视图](images/source-view.png)
 
-Show the commit history of your repository. The commit message, author, date, and changed files can be shown. Author and date are disabled by default as shown in the screenshot, but can be enabled in the settings.
+### 📜 历史记录视图
 
-![History View](https://raw.githubusercontent.com/Vinzent03/obsidian-git/master/images/history-view.png)
+显示仓库的提交历史，包括提交消息、作者、日期和更改的文件。
 
-### 🔍 Diff View 
+![历史记录视图](images/history-view.png)
 
-Compare versions with a clear and concise diff viewer.
-Open it from the source control view or via the `Open diff view` command.
+### 🔍 差异视图
 
-![Diff View](https://raw.githubusercontent.com/Vinzent03/obsidian-git/master/images/diff-view.png)
+通过清晰简洁的差异查看器比较版本。
 
-### 📝 Signs in the Editor
+![差异视图](images/diff-view.png)
 
-View line-by-line changes directly in the editor with added, modified, and deleted line/hunk indicators. You can stage and reset changes right from the signs. There also commands to navigate between hunks and stage/reset hunks under the cursor. Needs to be enabled in the plugin settings.
+### 📝 编辑器标记
 
-![Signs](https://raw.githubusercontent.com/Vinzent03/obsidian-git/master/images/signs.png)
+在编辑器中直接查看逐行更改，显示新增、修改和删除的行/块指示器。
 
-## Available Commands
-> Not exhaustive - these are just some of the most common commands. For a full list, see the Command Palette in Obsidian.
+![标记](images/signs.png)
 
-- 🔄 Changes
-  - `List changed files`: Lists all changes in a modal
-  - `Open diff view`: Open diff view for the current file
-  - `Stage current file`
-  - `Unstage current file`
-  - `Discard all changes`: Discard all changes in the repository
-- ✅ Commit
-  - `Commit`: If files are staged only commits those, otherwise commits only files that have been staged
-  - `Commit with specific message`: Same as above, but with a custom message
-  - `Commit all changes`: Commits all changes without pushing
-  - `Commit all changes with specific message`: Same as above, but with a custom message
-- 🔀 Commit-and-sync
-  - `Commit-and-sync`: With default settings, this will commit all changes, pull, and push
-  - `Commit-and-sync with specific message`: Same as above, but with a custom message
-  - `Commit-and-sync and close`: Same as `Commit-and-sync`, but if running on desktop, will close the Obsidian window. Will not exit Obsidian app on mobile.
-- 🌐 Remote
-  - `Push`, `Pull`
-  - `Edit remotes`: Add new remotes or edit existing remotes
-  - `Remove remote`
-  - `Clone an existing remote repo`: Opens dialog that will prompt for URL and authentication to clone a remote repo
-  - `Open file on GitHub`: Open the file view of the current file on GitHub in a browser window. Note: only works on desktop
-  - `Open file history on GitHub`: Open the file history of the current file on GitHub in a browser window. Note: only works on desktop
-- 🏠 Manage local repository
-  - `Initialize a new repo`
-  - `Create new branch`
-  - `Delete branch`
-  - `CAUTION: Delete repository`
-- 🧪 Miscellaneous
-  - `Open source control view`: Opens side pane displaying [Source control view](#sidebar-view)
-  - `Open history view`: Opens side pane displaying [History view](#history-view)
-  - `Edit .gitignore`
-  - `Add file to .gitignore`: Add current file to `.gitignore`
+## 🚀 快速开始
 
-## 💻 Desktop Notes
+### 安装
 
-### 🔐 Authentication
+1. 在 Obsidian 设置中打开"社区插件"
+2. 搜索"Obsidian Git"
+3. 点击"安装"
+4. 安装后启用插件
 
-Some Git services may require further setup for HTTPS/SSH authentication. Refer to the [Authentication Guide](https://publish.obsidian.md/git-doc/Authentication)
+### 基本配置
 
-### Obsidian on Linux
+1. **设置语言**：打开插件设置，在顶部选择"简体中文"
+2. **配置 Git**：确保您的笔记库已初始化为 Git 仓库
+3. **设置自动同步**：在插件设置中配置自动提交和推送间隔
 
-- ⚠️  Snap is not supported due to its sandboxing restrictions.
-- ⚠️  Flatpak is not recommended, because it doesn't have access to all system files. They are actively fixing many issues, but there are still issues. Especially with more advanced setups.
-- ✅ Please use AppImage or a full access installation of your system's package manager instead ([Linux installation guide](https://publish.obsidian.md/git-doc/Installation#Linux))
+详细配置说明请参阅[入门指南](docs/Getting%20Started.md)。
 
-## 📱 Mobile Support (⚠️  Experimental)
+## 🎮 常用命令
 
-The Git implementation on mobile is **very unstable**! I would not recommend using this plugin on mobile, but try other syncing services.
+> 这只是最常用的命令列表。完整列表请查看 Obsidian 的命令面板。
 
-One such alternative is [GitSync](https://github.com/ViscousPot/GitSync), which is available on both Android and iOS. It is not associated with this plugin, but it may be a better option for mobile users. A tutorial for setting it up can be found [here](https://viscouspotenti.al/posts/gitsync-all-devices-tutorial).
+* 🔄 **更改管理**
+  * `列出已更改的文件`：在模态框中列出所有更改
+  * `打开差异视图`：打开当前文件的差异视图
+  * `暂存当前文件`
+  * `取消暂存当前文件`
+  * `放弃所有更改`：放弃仓库中的所有更改
 
-> 🧪 The Git plugin works on mobile thanks to [isomorphic-git](https://isomorphic-git.org/), a JavaScript-based re-implementation of Git - but it comes with serious limitations and issues. It is not possible for an Obsidian plugin to use a native Git installation on Android or iOS.
+* ✅ **提交**
+  * `提交`：提交暂存的文件或所有更改
+  * `使用特定消息提交`：同上，但使用自定义消息
+  * `提交所有更改`：提交所有更改而不推送
+  * `使用特定消息提交所有更改`：同上，但使用自定义消息
 
-### ❌ Mobile Feature Limitations
+* 🔀 **提交并同步**
+  * `提交并同步`：默认设置下，这将提交所有更改、拉取和推送
+  * `使用特定消息提交并同步`：同上，但使用自定义消息
+  * `提交并同步然后关闭`：同上，但在桌面端会关闭 Obsidian 窗口
 
-- No **SSH authentication** ([isomorphic-git issue](https://github.com/isomorphic-git/isomorphic-git/issues/231))
-- Limited repo size, because of memory restrictions
-- No rebase merge strategy
-- No submodules support
+* 🌐 **远程操作**
+  * `推送`、`拉取`
+  * `编辑远程仓库`：添加新的远程仓库或编辑现有远程仓库
+  * `删除远程仓库`
+  * `克隆现有远程仓库`：打开对话框，提示输入 URL 和身份验证信息以克隆远程仓库
+  * `在 GitHub 上打开文件`：在浏览器中打开当前文件的 GitHub 视图（仅桌面端）
+  * `在 GitHub 上打开文件历史`：在浏览器中打开当前文件的 GitHub 历史记录（仅桌面端）
 
-### ⚠️ Performance Caveats
+* 🏠 **本地仓库管理**
+  * `初始化仓库`
+  * `创建新分支`
+  * `删除分支`
+  * `注意：删除仓库`
 
-> [!caution]
-> Depending on your device and available free RAM, Obsidian may
->
-> - crash on clone/pull
-> - create buffer overflow errors
-> - run indefinitely.
->
-> It's caused by the underlying git implementation on mobile, which is not efficient. I don't know how to fix this. If that's the case for you, I have to admit this plugin won't work for you. So commenting on any issue or creating a new one won't help. I am sorry.
+## 💻 桌面端说明
 
-### Tips for Mobile Use:
+### 🔐 身份验证
 
-If you have a large repo/vault I recommend to stage individual files and only commit staged files.
+某些 Git 服务可能需要进一步设置 HTTPS/SSH 身份验证。请参阅[身份验证指南](docs/Authentication.md)。
 
-## 🙋 Contact & Credits
+### Linux 上的 Obsidian
 
-- The Line Authoring feature was developed by [GollyTicker](https://github.com/GollyTicker), so any questions may be best answered by her.
-- This plugin was initial developed by [denolehov](https://github.com/denolehov). Since March 2021, it's me [Vinzent03](https://github.com/Vinzent03) who is developing this plugin. That's why the GitHub repository got moved to my account in July 2024.
-- If you have any kind of feedback or questions, feel free to reach out via GitHub issues.
+* ⚠️ 不支持 Snap，因为其沙盒限制
+* ⚠️ 不推荐使用 Flatpak，因为它无法访问所有系统文件
+* ✅ 请使用 AppImage 或系统包管理器的完全访问安装
 
-## ☕ Support
+## 📱 移动端支持（⚠️ 实验性）
 
-If you find this plugin useful and would like to support its development, you can support me on Ko-fi.
+移动端的 Git 实现**非常不稳定**！我不推荐在移动端使用此插件，建议尝试其他同步服务。
+
+### ❌ 移动端功能限制
+
+* 不支持 **SSH 身份验证**
+* 受内存限制，仓库大小受限
+* 不支持 rebase 合并策略
+* 不支持子模块
+
+### ⚠️ 性能注意事项
+
+根据您的设备和可用的空闲 RAM，Obsidian 可能会：
+* 在克隆/拉取时崩溃
+* 创建缓冲区溢出错误
+* 无限期运行
+
+这是由移动端底层 Git 实现效率低下导致的，我不知道如何修复。
+
+### 移动端使用提示
+
+如果您有大型仓库/笔记库，建议暂存单个文件并仅提交暂存的文件。
+
+## 🌏 汉化说明
+
+本版本已完成**完整的中文汉化**，包括：
+
+* ✅ 所有命令名称
+* ✅ 所有设置选项和描述
+* ✅ 所有通知消息
+* ✅ 所有对话框文本
+* ✅ 所有界面元素
+
+详细的汉化信息请参阅：
+* [中文版说明](CHINESE_VERSION.md)
+* [汉化详情](LOCALIZATION_CN.md)
+
+## 🙋 联系与致谢
+
+* Line Authoring 功能由 GollyTicker 开发
+* 此插件最初由 denolehov 开发。自 2021 年 3 月起，由 Vinzent03 接手开发
+* 中文汉化由社区贡献者完成
+* 如有任何反馈或问题，请通过 GitHub issues 联系
+
+## ☕ 支持
+
+如果您觉得这个插件有用并希望支持其开发，可以在 Ko-fi 上支持我。
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F195IQ5)
+
+## 📄 许可证
+
+[MIT License](LICENSE)
+
+## 🔗 相关链接
+
+* [原版仓库](https://github.com/Vinzent03/obsidian-git)
+* [完整文档](docs/Start%20here.md)
+* [常见问题](docs/Common%20issues.md)
+* [更新日志](CHANGELOG.md)
+
+---
+
+**版本**: 2.36.1 (中文版)  
+**最后更新**: 2026-01-20

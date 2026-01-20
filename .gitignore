@@ -1,18 +1,165 @@
-# Intellij
-*.iml
-.idea
+# ===================================
+# Obsidian Git 插件 - .gitignore
+# ===================================
 
-# npm
-node_modules
-main.js
+# ===================================
+# Node.js / npm / pnpm / yarn
+# ===================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 yarn.lock
+package-lock.json
 
-# build
+# ===================================
+# 构建输出
+# ===================================
+main.js
 *.js.map
+dist/
+build/
+out/
+.cache/
 
-.prettierignore
+# ===================================
+# TypeScript
+# ===================================
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ===================================
+# IDE 和编辑器
+# ===================================
+# VSCode
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# IntelliJ IDEA
+*.iml
+.idea/
+
+# Cursor
+.cursor/
+
+# WebStorm
+.webstorm/
+
+# ===================================
+# 操作系统
+# ===================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===================================
+# 临时文件
+# ===================================
+*.tmp
+*.temp
+*.swp
+*.swo
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# ===================================
+# 测试和覆盖率
+# ===================================
+.nyc_output/
+coverage/
+*.lcov
+.jest/
+test-results/
+
+# ===================================
+# 环境变量和配置
+# ===================================
+.env
+.env.local
+.env.*.local
+.env.test
+.env.production
+
+# Obsidian 插件数据
 /data.json
 
-.vscode
+# ===================================
+# Prettier
+# ===================================
+.prettierignore
 
-.DS_Store
+# ===================================
+# 其他
+# ===================================
+# 备份文件
+*.bak
+*.backup
+*.old
+
+# 压缩文件（如果用于开发）
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# 锁文件（pnpm-lock.yaml 保留用于依赖版本控制）
+# pnpm-lock.yaml 不应该被忽略
+
+# 调试文件
+debug.log
+npm-debug.log
+
+# ===================================
+# 项目特定
+# ===================================
+# 如果有本地测试用的 obsidian vault
+test-vault/
+.obsidian-test/
+
+# Git 凭据相关（安全）
+.git-credentials
+credentials.json
+
+# 本地报告和部署脚本（不提交到仓库）
+发布说明.md
+提交说明.md
+快速部署指南.md
+汉化项目总结.md
+README_STATUS.md
+如何推送.txt
+最终状态报告.md
+推送指南.txt
+push-to-github.bat
+*.bat
+
+# ===================================
+# 注释说明
+# ===================================
+# 保留的文件：
+# - manifest.json (插件清单，必需)
+# - styles.css (插件样式，必需)
+# - pnpm-lock.yaml (依赖版本锁定)
+# - 所有文档 .md 文件
+# - 所有源代码 .ts 文件
+# - 构建配置文件

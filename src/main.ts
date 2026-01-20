@@ -688,7 +688,7 @@ export default class ObsidianGit extends Plugin {
                 });
                 const containsConflictDir = await modal.openAndGetResult();
                 if (containsConflictDir === undefined) {
-                    new Notice("Aborted clone");
+                    new Notice(t("notices.aborted-clone"));
                     return;
                 } else if (containsConflictDir === "YES") {
                     const confirmOption =
@@ -706,7 +706,7 @@ export default class ObsidianGit extends Plugin {
                             true
                         );
                     } else {
-                        new Notice("Aborted clone");
+                        new Notice(t("notices.aborted-clone"));
                         return;
                     }
                 }
@@ -718,18 +718,18 @@ export default class ObsidianGit extends Plugin {
             }).openAndGetResult();
             let depthInt = undefined;
             if (depth === undefined) {
-                new Notice("Aborted clone");
+                new Notice(t("notices.aborted-clone"));
                 return;
             }
 
             if (depth !== "") {
                 depthInt = parseInt(depth);
                 if (isNaN(depthInt)) {
-                    new Notice("Invalid depth. Aborting clone.");
+                    new Notice(t("notices.invalid-depth"));
                     return;
                 }
             }
-            new Notice(`Cloning new repo into "${dir}"`);
+            new Notice(t("notices.cloning-repo", { dir }));
             const oldBase = this.settings.basePath;
             const customDir = dir && dir !== ".";
             //Set new base path before clone to ensure proper .git/index file location in isomorphic-git
@@ -742,8 +742,8 @@ export default class ObsidianGit extends Plugin {
                     dir,
                     depthInt
                 );
-                new Notice("Cloned new repo.");
-                new Notice("Please restart Obsidian");
+                new Notice(t("notices.cloned-repo-success"));
+                new Notice(t("notices.restart-obsidian"));
 
                 if (customDir) {
                     await this.saveSettings();
@@ -956,9 +956,7 @@ export default class ObsidianGit extends Plugin {
                     requestCustomMessage
                 ) {
                     if (!this.settings.disablePopups && fromAuto) {
-                        new Notice(
-                            "Auto backup: Please enter a custom commit message. Leave empty to abort"
-                        );
+                        new Notice(t("notices.auto-backup-message"));
                     }
                     const modalMessage = await new CustomMessageModal(
                         this

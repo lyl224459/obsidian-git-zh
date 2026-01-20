@@ -71,6 +71,24 @@ export default {
         "copy-debug-info": "Debug information copied to clipboard. May contain sensitive information!",
         "no-upstream-branch": "No upstream branch is set. Please select one.",
         "aborted-no-upstream": "Aborted. No upstream-branch is set!",
+        "no-repository-found": "No repository found",
+        "deleted-repository": "Successfully deleted repository. Reloading plugin...",
+        "discarded-tracked-files": "Discarded all changes in tracked files.",
+        "discarded-all-files": "Discarded all files.",
+        "paused-automatic": "Paused automatic routines.",
+        "resumed-automatic": "Resumed automatic routines.",
+        "aborted-clone": "Aborted clone",
+        "invalid-depth": "Invalid depth. Aborting clone.",
+        "cloning-repo": "Cloning new repo into \"{{dir}}\"",
+        "not-using-github": "It seems like you are not using GitHub",
+        "auth-failed": "Authentication failed. Please try with different credentials",
+        "status-taking-long": "This takes longer: Getting status",
+        "initializing-clone": "Initializing clone",
+        "initializing-pull": "Initializing pull",
+        "initializing-push": "Initializing push",
+        "initializing-fetch": "Initializing fetch",
+        "base-path-not-exist": "ObsidianGit: Base path does not exist",
+        "running-command": "Running '{{command}}'...",
     },
 
     // Modals
@@ -90,6 +108,12 @@ export default {
         "remote-branch": {
             title: "Select remote branch",
             placeholder: "Select or create a new remote branch by typing its name and selecting it",
+        },
+        auth: {
+            "username-placeholder": "Specify your username",
+            "password-placeholder": "Specify your password/personal access token",
+            "response-placeholder": "Enter a response to the message.",
+            "response-long": "Enter a response to the message.",
         },
         clone: {
             "url-placeholder": "Enter remote URL",

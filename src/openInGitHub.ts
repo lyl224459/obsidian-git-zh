@@ -2,6 +2,7 @@ import type { Editor, TFile } from "obsidian";
 import { Notice } from "obsidian";
 import type { GitManager } from "./gitManager/gitManager";
 import { SimpleGit } from "./gitManager/simpleGit";
+import { t } from "./i18n";
 
 export async function openLineInGitHub(
     editor: Editor,

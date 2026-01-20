@@ -9,6 +9,8 @@ import { SimpleGit } from "./gitManager/simpleGit";
 import { getNewLeaf, splitRemoteBranch } from "./utils";
 import { GeneralModal } from "./ui/modals/generalModal";
 import type { DiffViewState } from "./types";
+import { t } from "./i18n";
+import { t } from "./i18n";
 
 export default class Tools {
     constructor(private readonly plugin: ObsidianGit) {}
@@ -153,7 +155,7 @@ export default class Tools {
         if (command === undefined) return;
 
         this.plugin.promiseQueue.addTask(async () => {
-            const notice = new Notice(`Running '${command}'...`, 999_999);
+            const notice = new Notice(t("notices.running-command", { command }), 999_999);
 
             try {
                 const res = await gitManager.rawCommand(command);

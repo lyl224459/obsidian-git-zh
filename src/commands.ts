@@ -357,14 +357,12 @@ export function addCommmands(plugin: ObsidianGit) {
                         `${plugin.settings.basePath}/.git`,
                         true
                     );
-                    new Notice(
-                        "Successfully deleted repository. Reloading plugin..."
-                    );
+                    new Notice(t("notices.deleted-repository"));
                     plugin.unloadPlugin();
                     await plugin.init({ fromReload: true });
                 }
             } else {
-                new Notice("No repository found");
+                new Notice(t("notices.no-repository-found"));
             }
         },
     });
@@ -434,10 +432,10 @@ export function addCommmands(plugin: ObsidianGit) {
             const res = await plugin.discardAll();
             switch (res) {
                 case "discard":
-                    new Notice("Discarded all changes in tracked files.");
+                    new Notice(t("notices.discarded-tracked-files"));
                     break;
                 case "delete":
-                    new Notice("Discarded all files.");
+                    new Notice(t("notices.discarded-all-files"));
                     break;
                 case false:
                     break;
@@ -455,10 +453,10 @@ export function addCommmands(plugin: ObsidianGit) {
             plugin.localStorage.setPausedAutomatics(pause);
             if (pause) {
                 plugin.automaticsManager.unload();
-                new Notice(`Paused automatic routines.`);
+                new Notice(t("notices.paused-automatic"));
             } else {
                 plugin.automaticsManager.reload("commit", "push", "pull");
-                new Notice(`Resumed automatic routines.`);
+                new Notice(t("notices.resumed-automatic"));
             }
         },
     });

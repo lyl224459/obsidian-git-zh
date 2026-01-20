@@ -26,6 +26,7 @@ import { splitRemoteBranch, worthWalking } from "../utils";
 import { GitManager } from "./gitManager";
 import { MyAdapter } from "./myAdapter";
 import diff3Merge from "diff3";
+import { t } from "../i18n";
 
 export class IsomorphicGit extends GitManager {
     private readonly FILE = 0;
@@ -79,16 +80,13 @@ export class IsomorphicGit extends GitManager {
                 };
             },
             onAuthFailure: async () => {
-                new Notice(
-                    "Authentication failed. Please try with different credentials"
-                );
+                new Notice(t("notices.auth-failed"));
                 const username = await new GeneralModal(this.plugin, {
-                    placeholder: "Specify your username",
+                    placeholder: t("modals.auth.username-placeholder"),
                 }).openAndGetResult();
                 if (username) {
                     const password = await new GeneralModal(this.plugin, {
-                        placeholder:
-                            "Specify your password/personal access token",
+                        placeholder: t("modals.auth.password-placeholder"),
                         obscure: true,
                     }).openAndGetResult();
                     if (password) {
@@ -152,7 +150,7 @@ export class IsomorphicGit extends GitManager {
         let notice: Notice | undefined;
         const timeout = window.setTimeout(() => {
             notice = new Notice(
-                "This takes longer: Getting status",
+                t("notices.status-taking-long"),
                 this.noticeLength
             );
         }, 20000);
@@ -462,7 +460,7 @@ export class IsomorphicGit extends GitManager {
     }
 
     async pull(): Promise<FileStatusResult[]> {
-        const progressNotice = this.showNotice("Initializing pull");
+        const progressNotice = this.showNotice(t("notices.initializing-pull"));
         try {
             this.plugin.setPluginState({ gitAction: CurrentGitAction.pull });
 
@@ -561,7 +559,7 @@ export class IsomorphicGit extends GitManager {
         if (!(await this.canPush())) {
             return 0;
         }
-        const progressNotice = this.showNotice("Initializing push");
+        const progressNotice = this.showNotice(t("notices.initializing-push"));
         try {
             this.plugin.setPluginState({ gitAction: CurrentGitAction.status });
             const status = await this.branchInfo();
@@ -723,7 +721,7 @@ export class IsomorphicGit extends GitManager {
     }
 
     async clone(url: string, dir: string, depth?: number): Promise<void> {
-        const progressNotice = this.showNotice("Initializing clone");
+        const progressNotice = this.showNotice(t("notices.initializing-clone"));
         try {
             await this.wrapFS(
                 git.clone({
@@ -780,7 +778,7 @@ export class IsomorphicGit extends GitManager {
     }
 
     async fetch(remote?: string): Promise<void> {
-        const progressNotice = this.showNotice("Initializing fetch");
+        const progressNotice = this.showNotice(t("notices.initializing-fetch"));
 
         try {
             const args = {
@@ -1017,7 +1015,7 @@ export class IsomorphicGit extends GitManager {
         let notice: Notice | undefined;
         const timeout = window.setTimeout(() => {
             notice = new Notice(
-                "This takes longer: Getting status",
+                t("notices.status-taking-long"),
                 this.noticeLength
             );
         }, 20000);

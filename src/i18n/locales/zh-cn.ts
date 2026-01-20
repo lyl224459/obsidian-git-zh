@@ -71,6 +71,24 @@ export default {
         "copy-debug-info": "调试信息已复制到剪贴板。可能包含敏感信息！",
         "no-upstream-branch": "未设置上游分支。请选择一个。",
         "aborted-no-upstream": "已中止。未设置上游分支！",
+        "no-repository-found": "未找到仓库",
+        "deleted-repository": "成功删除仓库。正在重新加载插件...",
+        "discarded-tracked-files": "已放弃所有跟踪文件的更改。",
+        "discarded-all-files": "已放弃所有文件。",
+        "paused-automatic": "已暂停自动例程。",
+        "resumed-automatic": "已恢复自动例程。",
+        "aborted-clone": "已中止克隆",
+        "invalid-depth": "深度无效。正在中止克隆。",
+        "cloning-repo": "正在将新仓库克隆到 \"{{dir}}\"",
+        "not-using-github": "似乎您没有使用 GitHub",
+        "auth-failed": "身份验证失败。请尝试使用不同的凭据",
+        "status-taking-long": "这需要更长时间：正在获取状态",
+        "initializing-clone": "正在初始化克隆",
+        "initializing-pull": "正在初始化拉取",
+        "initializing-push": "正在初始化推送",
+        "initializing-fetch": "正在初始化获取",
+        "base-path-not-exist": "ObsidianGit: 基本路径不存在",
+        "running-command": "正在运行 '{{command}}'...",
     },
 
     // 对话框
@@ -90,6 +108,12 @@ export default {
         "remote-branch": {
             title: "选择远程分支",
             placeholder: "选择或创建新的远程分支（输入其名称并选择）",
+        },
+        auth: {
+            "username-placeholder": "指定您的用户名",
+            "password-placeholder": "指定您的密码/个人访问令牌",
+            "response-placeholder": "输入对消息的响应。",
+            "response-long": "输入对消息的响应。",
         },
         clone: {
             "url-placeholder": "输入远程 URL",

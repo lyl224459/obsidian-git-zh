@@ -46,15 +46,15 @@ export class TextGutter extends GutterMarker {
         super();
     }
 
-    eq(other: TextGutter): boolean {
+    override eq(other: TextGutter): boolean {
         return other instanceof TextGutter && this.text === other.text;
     }
 
-    toDOM() {
+    override toDOM() {
         return document.createTextNode(this.text);
     }
 
-    destroy(dom: HTMLElement): void {
+    override destroy(dom: HTMLElement): void {
         if (!dom) {
             return; // sometimes, it doesn't exist anymore.
         }
@@ -87,7 +87,7 @@ export class LineAuthoringGutter extends GutterMarker {
     }
 
     // Equality used by CodeMirror for optimisations
-    public eq(other: GutterMarker): boolean {
+    public override eq(other: GutterMarker): boolean {
         return (
             this.key === (<LineAuthoringGutter>other)?.key &&
             this.startLine === (<LineAuthoringGutter>other)?.startLine &&
@@ -110,13 +110,13 @@ export class LineAuthoringGutter extends GutterMarker {
      *
      * The age in days is recorded via {@link recordRenderedAgeInDays} to enable adaptive coloring.
      */
-    public toDOM() {
+    public override toDOM() {
         this.precomputedDomProvider =
             this.precomputedDomProvider ?? this.computeDom();
         return this.precomputedDomProvider();
     }
 
-    public destroy(dom: HTMLElement): void {
+    public override destroy(dom: HTMLElement): void {
         if (!dom) {
             return; // sometimes, it doesn't exist anymore.
         }

@@ -79,7 +79,7 @@ export const SOURCE_CONTROL_VIEW_CONFIG = {
 export const COMMIT_SIDEBAR_VIEW_CONFIG = {
     type: "git-commit-sidebar",
     name: "Git Commit Sidebar",
-    icon: "save",
+    icon: "git-commit",
 };
 
 export const HISTORY_VIEW_CONFIG = {

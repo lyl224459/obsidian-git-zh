@@ -341,7 +341,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 });
 
             const datePlaceholderSetting = new Setting(containerEl)
-                .setName("{{date}} placeholder format")
+                .setName(t("settings.date-placeholder.name"))
                 .addMomentFormat((text) =>
                     text
                         .setDefaultFormat(plugin.settings.commitDateFormat)
@@ -351,12 +351,13 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                             await plugin.saveSettings();
                         })
                 );
-            datePlaceholderSetting.descEl.innerHTML = `
-            Specify custom date format. E.g. "${DATE_TIME_FORMAT_SECONDS}. See <a href="https://momentjs.com">Moment.js</a> for more formats.`;
+            datePlaceholderSetting.descEl.innerHTML = t("settings.date-placeholder.desc", {
+                format: DATE_TIME_FORMAT_SECONDS
+            });
 
             new Setting(containerEl)
-                .setName("{{hostname}} placeholder replacement")
-                .setDesc("Specify custom hostname for every device.")
+                .setName(t("settings.hostname-placeholder.name"))
+                .setDesc(t("settings.hostname-placeholder.desc"))
                 .addText((text) =>
                     text
                         .setValue(plugin.localStorage.getHostname() ?? "")
@@ -1010,20 +1011,20 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
 
     private addLineAuthorInfoSettings() {
         const baseLineAuthorInfoSetting = new Setting(this.containerEl).setName(
-            "Show commit authoring information next to each line"
+            t("settings.line-author-show.name")
         );
 
         if (
             !this.plugin.editorIntegration.lineAuthoringFeature.isAvailableOnCurrentPlatform()
         ) {
             baseLineAuthorInfoSetting
-                .setDesc("Only available on desktop currently.")
+                .setDesc(t("settings.line-author-show.only-available-desktop"))
                 .setDisabled(true);
         }
 
-        baseLineAuthorInfoSetting.descEl.innerHTML = `
-            <a href="${LINE_AUTHOR_FEATURE_WIKI_LINK}">Feature guide and quick examples</a></br>
-            The commit hash, author name and authoring date can all be individually toggled.</br>Hide everything, to only show the age-colored sidebar.`;
+        baseLineAuthorInfoSetting.descEl.innerHTML = t("settings.line-author-show.desc", {
+            link: LINE_AUTHOR_FEATURE_WIKI_LINK
+        });
 
         baseLineAuthorInfoSetting.addToggle((toggle) =>
             toggle.setValue(this.settings.lineAuthor.show).onChange((value) => {
@@ -1034,33 +1035,27 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
 
         if (this.settings.lineAuthor.show) {
             const trackMovement = new Setting(this.containerEl)
-                .setName("Follow movement and copies across files and commits")
+                .setName(t("settings.line-author-follow-movement.name"))
                 .setDesc("")
                 .addDropdown((dropdown) => {
                     dropdown.addOptions(<
                         Record<LineAuthorFollowMovement, string>
                     >{
-                        inactive: "Do not follow (default)",
-                        "same-commit": "Follow within same commit",
-                        "all-commits": "Follow within all commits (maybe slow)",
+                        inactive: t("settings.line-author-follow-movement.options.inactive"),
+                        "same-commit": t("settings.line-author-follow-movement.options.same-commit"),
+                        "all-commits": t("settings.line-author-follow-movement.options.all-commits"),
                     });
                     dropdown.setValue(this.settings.lineAuthor.followMovement);
                     dropdown.onChange((value: LineAuthorFollowMovement) =>
                         this.lineAuthorSettingHandler("followMovement", value)
                     );
                 });
-            trackMovement.descEl.innerHTML = `
-                By default (deactivated), each line only shows the newest commit where it was changed.
-                <br/>
-                With <i>same commit</i>, cut-copy-paste-ing of text is followed within the same commit and the original commit of authoring will be shown.
-                <br/>
-                With <i>all commits</i>, cut-copy-paste-ing text inbetween multiple commits will be detected.
-                <br/>
-                It uses <a href="https://git-scm.com/docs/git-blame">git-blame</a> and
-                for matches (at least ${GIT_LINE_AUTHORING_MOVEMENT_DETECTION_MINIMAL_LENGTH} characters) within the same (or all) commit(s), <em>the originating</em> commit's information is shown.`;
+            trackMovement.descEl.innerHTML = t("settings.line-author-follow-movement.desc", {
+                length: GIT_LINE_AUTHORING_MOVEMENT_DETECTION_MINIMAL_LENGTH
+            });
 
             new Setting(this.containerEl)
-                .setName("Show commit hash")
+                .setName(t("settings.line-author-show-commit-hash.name"))
                 .addToggle((tgl) => {
                     tgl.setValue(this.settings.lineAuthor.showCommitHash);
                     tgl.onChange((value: boolean) =>
@@ -1069,15 +1064,15 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 });
 
             new Setting(this.containerEl)
-                .setName("Author name display")
-                .setDesc("If and how the author is displayed")
+                .setName(t("settings.line-author-author-display.name"))
+                .setDesc(t("settings.line-author-author-display.desc"))
                 .addDropdown((dropdown) => {
                     const options: Record<LineAuthorDisplay, string> = {
-                        hide: "Hide",
-                        initials: "Initials (default)",
-                        "first name": "First name",
-                        "last name": "Last name",
-                        full: "Full name",
+                        hide: t("settings.line-author-author-display.options.hide"),
+                        initials: t("settings.line-author-author-display.options.initials"),
+                        "first name": t("settings.line-author-author-display.options.first name"),
+                        "last name": t("settings.line-author-author-display.options.last name"),
+                        full: t("settings.line-author-author-display.options.full"),
                     };
                     dropdown.addOptions(options);
                     dropdown.setValue(this.settings.lineAuthor.authorDisplay);
@@ -1088,20 +1083,18 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 });
 
             new Setting(this.containerEl)
-                .setName("Authoring date display")
-                .setDesc(
-                    "If and how the date and time of authoring the line is displayed"
-                )
+                .setName(t("settings.line-author-date-display.name"))
+                .setDesc(t("settings.line-author-date-display.desc"))
                 .addDropdown((dropdown) => {
                     const options: Record<
                         LineAuthorDateTimeFormatOptions,
                         string
                     > = {
-                        hide: "Hide",
-                        date: "Date (default)",
-                        datetime: "Date and time",
-                        "natural language": "Natural language",
-                        custom: "Custom",
+                        hide: t("settings.line-author-date-display.options.hide"),
+                        date: t("settings.line-author-date-display.options.date"),
+                        datetime: t("settings.line-author-date-display.options.datetime"),
+                        "natural language": t("settings.line-author-date-display.options.natural language"),
+                        custom: t("settings.line-author-date-display.options.custom"),
                     };
                     dropdown.addOptions(options);
                     dropdown.setValue(
@@ -1125,7 +1118,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 );
 
                 dateTimeFormatCustomStringSetting
-                    .setName("Custom authoring date format")
+                    .setName(t("settings.line-author-date-custom-format.name"))
                     .addText((cb) => {
                         cb.setValue(
                             this.settings.lineAuthor.dateTimeFormatCustomString
@@ -1151,12 +1144,12 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
             }
 
             new Setting(this.containerEl)
-                .setName("Authoring date display timezone")
+                .setName(t("settings.line-author-date-timezone.name"))
                 .addDropdown((dropdown) => {
                     const options: Record<LineAuthorTimezoneOption, string> = {
-                        "viewer-local": "My local (default)",
-                        "author-local": "Author's local",
-                        utc0000: "UTC+0000/Z",
+                        "viewer-local": t("settings.line-author-date-timezone.options.viewer-local"),
+                        "author-local": t("settings.line-author-date-timezone.options.author-local"),
+                        utc0000: t("settings.line-author-date-timezone.options.utc0000"),
                     };
                     dropdown.addOptions(options);
                     dropdown.setValue(
@@ -1166,15 +1159,10 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                     dropdown.onChange(async (value: LineAuthorTimezoneOption) =>
                         this.lineAuthorSettingHandler("dateTimeTimezone", value)
                     );
-                }).descEl.innerHTML = `
-                    The time-zone in which the authoring date should be shown.
-                    Either your local time-zone (default),
-                    the author's time-zone during commit creation or
-                    <a href="https://en.wikipedia.org/wiki/UTC%C2%B100:00">UTC±00:00</a>.
-            `;
+                }).descEl.innerHTML = t("settings.line-author-date-timezone.desc");
 
             const oldestAgeSetting = new Setting(this.containerEl).setName(
-                "Oldest age in coloring"
+                t("settings.line-author-oldest-age.name")
             );
 
             oldestAgeSetting.descEl.innerHTML =
@@ -1203,7 +1191,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
             this.createColorSetting("oldest");
 
             new Setting(this.containerEl)
-                .setName("Text color")
+                .setName(t("settings.line-author-text-color.name"))
                 .addText((field) => {
                     field.setValue(this.settings.lineAuthor.textColorCss);
                     field.onChange(async (value) => {
@@ -1212,41 +1200,16 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                             value
                         );
                     });
-                }).descEl.innerHTML = `
-                    The CSS color of the gutter text.<br/>
-
-                    It is highly recommended to use
-                    <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties">
-                    CSS variables</a>
-                    defined by themes
-                    (e.g. <pre style="display:inline">var(--text-muted)</pre> or
-                    <pre style="display:inline">var(--text-on-accent)</pre>,
-                    because they automatically adapt to theme changes.<br/>
-
-                    See: <a href="https://github.com/obsidian-community/obsidian-theme-template/blob/main/obsidian.css">
-                    List of available CSS variables in Obsidian
-                    <a/>
-                `;
+                }).descEl.innerHTML = t("settings.line-author-text-color.desc");
 
             new Setting(this.containerEl)
-                .setName("Ignore whitespace and newlines in changes")
+                .setName(t("settings.line-author-ignore-whitespace.name"))
                 .addToggle((tgl) => {
                     tgl.setValue(this.settings.lineAuthor.ignoreWhitespace);
                     tgl.onChange((value) =>
                         this.lineAuthorSettingHandler("ignoreWhitespace", value)
                     );
-                }).descEl.innerHTML = `
-                    Whitespace and newlines are interpreted as
-                    part of the document and in changes
-                    by default (hence not ignored).
-                    This makes the last line being shown as 'changed'
-                    when a new subsequent line is added,
-                    even if the previously last line's text is the same.
-                    <br>
-                    If you don't care about purely-whitespace changes
-                    (e.g. list nesting / quote indentation changes),
-                    then activating this will provide more meaningful change detection.
-                `;
+                }).descEl.innerHTML = t("settings.line-author-ignore-whitespace.desc");
         }
     }
 

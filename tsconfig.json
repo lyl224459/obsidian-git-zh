@@ -6,13 +6,33 @@
         "module": "ESNext",
         "target": "ES6",
         "allowJs": true,
+        // Strict type checking
+        "strict": true,
         "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "strictPropertyInitialization": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        // Additional checks
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "noImplicitOverride": true,
+        "noPropertyAccessFromIndexSignature": true,
+        // Module resolution
         "isolatedModules": true,
         "moduleResolution": "node",
-        "strictNullChecks": true,
         "importHelpers": true,
         "allowSyntheticDefaultImports": true,
         "verbatimModuleSyntax": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "forceConsistentCasingInFileNames": true,
+        // Other
         "lib": [
             "DOM",
             "ES5",
@@ -20,10 +40,6 @@
             "ES7"
         ],
         "skipLibCheck": true,
-        "noUnusedLocals": false,
-        "esModuleInterop": true,
-        "resolveJsonModule": true,
-        "forceConsistentCasingInFileNames": true,
         "incremental": true,
         "tsBuildInfoFile": ".tsbuildinfo"
     },

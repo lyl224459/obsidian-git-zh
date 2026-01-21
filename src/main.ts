@@ -1,4 +1,3 @@
-import { Errors } from "isomorphic-git";
 import type { Debouncer, Menu, TAbstractFile, WorkspaceLeaf } from "obsidian";
 import {
     debounce,
@@ -131,11 +130,15 @@ export default class ObsidianGit extends Plugin {
         const historyViews = this.app.workspace.getLeavesOfType(
             HISTORY_VIEW_CONFIG.type
         );
+        const commitSidebarViews = this.app.workspace.getLeavesOfType(
+            COMMIT_SIDEBAR_VIEW_CONFIG.type
+        );
 
         if (
             this.settings.changedFilesInStatusBar ||
             gitViews.some((leaf) => !(leaf.isDeferred ?? false)) ||
-            historyViews.some((leaf) => !(leaf.isDeferred ?? false))
+            historyViews.some((leaf) => !(leaf.isDeferred ?? false)) ||
+            commitSidebarViews.some((leaf) => !(leaf.isDeferred ?? false))
         ) {
             await this.updateCachedStatus().catch((e) => this.displayError(e));
         }
@@ -243,7 +246,7 @@ export default class ObsidianGit extends Plugin {
 
         this.registerEvent(
             this.app.workspace.on("file-menu", (menu, file, source) => {
-                this.handleFileMenu(menu, file, source, "file-manu");
+                this.handleFileMenu(menu, file, source, "file-menu");
             })
         );
 
@@ -305,27 +308,19 @@ export default class ObsidianGit extends Plugin {
 
         // Add ribbon icon to open the Git commit sidebar in the left ribbon
         this.addRibbonIcon(
-            "save",
-            t("Open Git Commit Sidebar"),
-            async (evt: MouseEvent) => {
-                this.activateView(COMMIT_SIDEBAR_VIEW_CONFIG.type, evt);
-            }
-        );
-
-        this.addRibbonIcon(
-            "git-pull-request",
-            t("commands.open-git-view"),
+            "git-commit",
+            t("commands.open-commit-sidebar"),
             async () => {
                 const leafs = this.app.workspace.getLeavesOfType(
-                    SOURCE_CONTROL_VIEW_CONFIG.type
+                    COMMIT_SIDEBAR_VIEW_CONFIG.type
                 );
                 let leaf: WorkspaceLeaf;
                 if (leafs.length === 0) {
                     leaf =
-                        this.app.workspace.getRightLeaf(false) ??
+                        this.app.workspace.getLeftLeaf(false) ??
                         this.app.workspace.getLeaf();
                     await leaf.setViewState({
-                        type: SOURCE_CONTROL_VIEW_CONFIG.type,
+                        type: COMMIT_SIDEBAR_VIEW_CONFIG.type,
                     });
                 } else {
                     leaf = leafs.first()!;
@@ -333,11 +328,6 @@ export default class ObsidianGit extends Plugin {
                 await this.app.workspace.revealLeaf(leaf);
             }
         );
-
-        this.registerHoverLinkSource(SOURCE_CONTROL_VIEW_CONFIG.type, {
-            display: t("views.source-control.title"),
-            defaultMod: true,
-        });
 
         this.editorIntegration.onLoadPlugin();
 
@@ -383,7 +373,7 @@ export default class ObsidianGit extends Plugin {
         menu: Menu,
         file: TAbstractFile | string,
         source: string,
-        type: "file-manu" | "obsidian-git:menu"
+        type: "file-menu" | "obsidian-git:menu"
     ): void {
         if (!this.gitReady) return;
         if (!this.settings.showFileMenu) return;

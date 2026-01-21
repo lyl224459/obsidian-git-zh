@@ -314,6 +314,7 @@ function scheduleHunkComputation(
             previousChunks,
             changeDesc: debouncerField.changeDesc,
         });
+        return undefined;
     } else {
         // This technically breaks the immutability of the StateField, but I
         // think it's acceptable here. The debouncer itself is not very

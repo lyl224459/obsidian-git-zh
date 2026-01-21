@@ -1,4 +1,4 @@
-import { type App, moment } from "obsidian";
+import { type App } from "obsidian";
 import type ObsidianGit from "../main";
 import type {
     BranchInfo,
@@ -277,7 +277,7 @@ export abstract class GitManager {
             if (status.staged.length < 100) {
                 status.staged.forEach((value: FileStatusResult) => {
                     if (value.index in changeset) {
-                        changeset[value.index].push(value.path);
+                        changeset[value.index]?.push(value.path);
                     } else {
                         changeset[value.index] = [value.path];
                     }

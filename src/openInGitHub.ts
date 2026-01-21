@@ -1,8 +1,7 @@
 import type { Editor, TFile } from "obsidian";
-import { Notice } from "obsidian";
+import { Notice, Platform, requestUrl } from "obsidian";
 import type { GitManager } from "./gitManager/gitManager";
 import { SimpleGit } from "./gitManager/simpleGit";
-import { t } from "./i18n";
 
 export async function openLineInGitHub(
     editor: Editor,
@@ -150,8 +149,8 @@ async function getData(
         return {
             result: "success",
             isGitHub: !!isGitHub,
-            repo: httpsRepo || sshRepo,
-            user: httpsUser || sshUser,
+            repo: httpsRepo || sshRepo || "",
+            user: httpsUser || sshUser || "",
             branch: branch,
             filePath: filePath,
         };

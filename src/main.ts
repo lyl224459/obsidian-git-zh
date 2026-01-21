@@ -3,20 +3,17 @@ import {
     debounce,
     FileSystemAdapter,
     MarkdownView,
-    normalizePath,
     Notice,
     Platform,
     Plugin,
     TFile,
     TFolder,
-    moment,
 } from "obsidian";
 import * as path from "path";
 import { pluginRef } from "src/pluginGlobalRef";
 import { PromiseQueue } from "src/promiseQueue";
 import { ObsidianGitSettingsTab } from "src/setting/settings";
 import { StatusBar } from "src/statusBar";
-import { CustomMessageModal } from "src/ui/modals/customMessageModal";
 import { initI18n, t } from "src/i18n";
 import AutomaticsManager from "./automaticsManager";
 import { addCommmands } from "./commands";
@@ -39,28 +36,20 @@ import type {
     ObsidianGitSettings,
     PluginState,
     Status,
-    UnstagedFile,
 } from "./types";
 import {
     CurrentGitAction,
     mergeSettingsByPriority,
-    NoNetworkError,
 } from "./types";
 import DiffView from "./ui/diff/diffView";
 import SplitDiffView from "./ui/diff/splitDiffView";
 import HistoryView from "./ui/history/historyView";
-import { BranchModal } from "./ui/modals/branchModal";
-import { GeneralModal } from "./ui/modals/generalModal";
 import GitView from "./ui/sourceControl/sourceControl";
 import { BranchStatusBar } from "./ui/statusBar/branchStatusBar";
 import {
-    assertNever,
     convertPathToAbsoluteGitignoreRule,
-    formatRemoteUrl,
-    spawnAsync,
-    splitRemoteBranch,
 } from "./utils";
-import { DiscardModal, type DiscardResult } from "./ui/modals/discardModal";
+import type { DiscardResult } from "./ui/modals/discardModal";
 import { HunkActions } from "./editor/signs/hunkActions";
 import { EditorIntegration } from "./editor/editorIntegration";
 import GitCommitSidebarView from "./ui/commitSidebar/commitSidebar";
@@ -74,7 +63,7 @@ import {
 
 export default class ObsidianGit extends Plugin {
     // Git Manager
-    gitManager: GitManager;
+    gitManager!: GitManager;
     
     // Services
     gitOperations!: GitOperationsService;
@@ -87,7 +76,7 @@ export default class ObsidianGit extends Plugin {
     automaticsManager = new AutomaticsManager(this);
     tools = new Tools(this);
     localStorage = new LocalStorageSettings(this);
-    settings: ObsidianGitSettings;
+    settings!: ObsidianGitSettings;
     settingsTab?: ObsidianGitSettingsTab;
     statusBar?: StatusBar;
     branchBar?: BranchStatusBar;
@@ -95,7 +84,7 @@ export default class ObsidianGit extends Plugin {
         gitAction: CurrentGitAction.idle,
         offlineMode: false,
     };
-    lastPulledFiles: FileStatusResult[];
+    lastPulledFiles: FileStatusResult[] = [];
     gitReady = false;
     promiseQueue: PromiseQueue = new PromiseQueue(this);
 
@@ -113,7 +102,7 @@ export default class ObsidianGit extends Plugin {
     /**
      * Debouncer for the refresh of the git status for the source control view after file changes.
      */
-    debRefresh: Debouncer<[], void>;
+    debRefresh!: Debouncer<[], void>;
 
     setPluginState(state: Partial<PluginState>): void {
         this.state = Object.assign(this.state, state);
@@ -170,6 +159,44 @@ export default class ObsidianGit extends Plugin {
     refreshUpdatedHead() {}
 
     /**
+     * 显示错误消息
+     */
+    displayError(error: unknown): void {
+        if (error instanceof Error) {
+            new Notice(error.message, 8000);
+            console.error(error);
+        } else if (typeof error === "string") {
+            new Notice(error, 8000);
+            console.error(error);
+        } else {
+            new Notice(String(error), 8000);
+            console.error(error);
+        }
+    }
+
+    /**
+     * 显示成功消息
+     */
+    displayMessage(message: string): void {
+        new Notice(message, 4000);
+    }
+
+    /**
+     * 记录日志
+     */
+    log(message: string): void {
+        console.log(`[Obsidian Git] ${message}`);
+    }
+
+    /**
+     * 处理活动页面变化事件
+     */
+    onActiveLeafChange(_leaf: WorkspaceLeaf | null): void {
+        // 这个方法主要用于响应活动页面变化
+        // 具体的处理逻辑由各个功能模块自行监听 active-leaf-change 事件
+    }
+
+    /**
      * 初始化所有服务实例
      */
     private initializeServices(): void {
@@ -180,7 +207,7 @@ export default class ObsidianGit extends Plugin {
         this.repositoryService = new RepositoryService(this);
     }
 
-    async onload() {
+    override async onload() {
         console.log(
             "loading " +
                 this.manifest.name +
@@ -218,7 +245,7 @@ export default class ObsidianGit extends Plugin {
         }
     }
 
-    onExternalSettingsChange() {
+    override onExternalSettingsChange() {
         this.reloadSettings().catch((e) => this.displayError(e));
     }
 
@@ -559,7 +586,7 @@ export default class ObsidianGit extends Plugin {
         this.debRefresh.cancel();
     }
 
-    onunload() {
+    override onunload() {
         this.unloadPlugin();
 
         console.log("unloading " + this.manifest.name + " plugin");
@@ -733,12 +760,10 @@ export default class ObsidianGit extends Plugin {
 
     async commitAndSync({
         fromAutoBackup,
-        requestCustomMessage = false,
         commitMessage,
         onlyStaged = false,
     }: {
         fromAutoBackup: boolean;
-        requestCustomMessage?: boolean;
         commitMessage?: string;
         onlyStaged?: boolean;
     }): Promise<void> {
@@ -758,13 +783,11 @@ export default class ObsidianGit extends Plugin {
     // Returns true if commit was successfully
     async commit({
         fromAuto,
-        requestCustomMessage = false,
         onlyStaged = false,
         commitMessage,
         amend = false,
     }: {
         fromAuto: boolean;
-        requestCustomMessage?: boolean;
         onlyStaged?: boolean;
         commitMessage?: string;
         amend?: boolean;

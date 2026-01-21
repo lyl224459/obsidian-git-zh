@@ -78,6 +78,7 @@ function getMarkers(
         const prevHunk = i > 0 ? hunks[i - 1] : undefined;
         const nextHunk = i < hunks.length - 1 ? hunks[i + 1] : undefined;
         const hunk = hunks[i];
+        if (!hunk) continue;
         signs.push(...Hunks.calcSigns(prevHunk, hunk, nextHunk));
     }
 

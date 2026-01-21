@@ -137,7 +137,8 @@ export function rawHunksToHunks(
         const hunk = Hunks.createHunk(oldStart, oldLines, newStart, newLines);
         if (rawHunk.oldLines > 0) {
             for (let i = oldStart; i < oldStart + oldLines; i++) {
-                hunk.removed.lines.push(linesA[i - 1]);
+                const line = linesA[i - 1];
+                if (line !== undefined) hunk.removed.lines.push(line);
             }
             if (oldStart + oldLines > linesA.length && linesA.last() != "") {
                 hunk.removed.no_nl_at_eof = true;
@@ -145,7 +146,8 @@ export function rawHunksToHunks(
         }
         if (rawHunk.newLines > 0) {
             for (let i = newStart; i < newStart + newLines; i++) {
-                hunk.added.lines.push(linesB[i - 1]);
+                const line = linesB[i - 1];
+                if (line !== undefined) hunk.added.lines.push(line);
             }
             if (newStart + newLines > linesB.length && linesB.last() != "") {
                 hunk.added.no_nl_at_eof = true;
@@ -209,6 +211,7 @@ function diffViaCMMerge(
     const rawHunks: RawHunk[] = [];
     for (let i = 0; i < newChunks.length; i++) {
         const chunk = newChunks[i];
+        if (!chunk) continue;
 
         const rawHunk = rawHunkFromChunk(chunk, aDoc, bDoc);
         rawHunks.push(rawHunk);

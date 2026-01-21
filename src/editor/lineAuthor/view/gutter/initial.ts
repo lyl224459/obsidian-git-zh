@@ -1,4 +1,4 @@
-import { moment } from "obsidian";
+import type { moment } from "obsidian";
 import { DEFAULT_SETTINGS } from "src/constants";
 import type {
     LineAuthoring,

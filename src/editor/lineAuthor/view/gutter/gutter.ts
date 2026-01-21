@@ -1,6 +1,6 @@
 import { GutterMarker } from "@codemirror/view";
 import { sha256 } from "js-sha256";
-import { moment } from "obsidian";
+import type { moment } from "obsidian";
 import { DATE_FORMAT, DATE_TIME_FORMAT_MINUTES } from "src/constants";
 import type {
     LineAuthorDateTimeFormatOptions,

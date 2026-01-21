@@ -88,16 +88,16 @@ export function addCommmands(plugin: ObsidianGit) {
             const file = app.workspace.getActiveFile();
             if (checking) {
                 return file !== null;
-            } else {
-                const filePath = plugin.gitManager.getRelativeRepoPath(
-                    file!.path,
-                    true
-                );
-                plugin.tools.openDiff({
-                    aFile: filePath,
-                    aRef: "",
-                });
             }
+            const filePath = plugin.gitManager.getRelativeRepoPath(
+                file!.path,
+                true
+            );
+            plugin.tools.openDiff({
+                aFile: filePath,
+                aRef: "",
+            });
+            return true;
         },
     });
 
@@ -105,7 +105,9 @@ export function addCommmands(plugin: ObsidianGit) {
         id: "view-file-on-github",
         name: t("commands.open-file-on-github"),
         editorCallback: (editor, { file }) => {
-            if (file) return openLineInGitHub(editor, file, plugin.gitManager);
+            if (file) {
+                openLineInGitHub(editor, file, plugin.gitManager);
+            }
         },
     });
 
@@ -113,7 +115,9 @@ export function addCommmands(plugin: ObsidianGit) {
         id: "view-history-on-github",
         name: t("commands.open-file-history-on-github"),
         editorCallback: (_, { file }) => {
-            if (file) return openHistoryInGitHub(file, plugin.gitManager);
+            if (file) {
+                openHistoryInGitHub(file, plugin.gitManager);
+            }
         },
     });
 
@@ -144,11 +148,11 @@ export function addCommmands(plugin: ObsidianGit) {
             const file = app.workspace.getActiveFile();
             if (checking) {
                 return file !== null;
-            } else {
-                plugin
-                    .addFileToGitignore(file!.path, file instanceof TFolder)
-                    .catch((e) => plugin.displayError(e));
             }
+            plugin
+                .addFileToGitignore(file!.path, file instanceof TFolder)
+                .catch((e) => plugin.displayError(e));
+            return true;
         },
     });
 
@@ -178,7 +182,6 @@ export function addCommmands(plugin: ObsidianGit) {
             plugin.promiseQueue.addTask(() =>
                 plugin.commitAndSync({
                     fromAutoBackup: false,
-                    requestCustomMessage: true,
                 })
             ),
     });
@@ -199,7 +202,6 @@ export function addCommmands(plugin: ObsidianGit) {
             plugin.promiseQueue.addTask(() =>
                 plugin.commit({
                     fromAuto: false,
-                    requestCustomMessage: true,
                 })
             ),
     });
@@ -213,7 +215,6 @@ export function addCommmands(plugin: ObsidianGit) {
                 const onlyStaged = status.staged.length > 0;
                 return plugin.commit({
                     fromAuto: false,
-                    requestCustomMessage: false,
                     onlyStaged: onlyStaged,
                 });
             }),
@@ -231,9 +232,9 @@ export function addCommmands(plugin: ObsidianGit) {
             plugin.promiseQueue.addTask(async () => {
                 return plugin.commit({
                     fromAuto: false,
-                    requestCustomMessage: false,
                 });
             });
+            return true;
         },
     });
 
@@ -245,7 +246,6 @@ export function addCommmands(plugin: ObsidianGit) {
                 plugin.promiseQueue.addTask(() =>
                     plugin.commit({
                         fromAuto: false,
-                        requestCustomMessage: true,
                         onlyStaged: true,
                         amend: true,
                     })
@@ -262,7 +262,6 @@ export function addCommmands(plugin: ObsidianGit) {
                 const onlyStaged = status.staged.length > 0;
                 return plugin.commit({
                     fromAuto: false,
-                    requestCustomMessage: true,
                     onlyStaged: onlyStaged,
                 });
             }),
@@ -274,13 +273,13 @@ export function addCommmands(plugin: ObsidianGit) {
         checkCallback: function (checking) {
             // Same reason as for commit-staged
             if (checking) return false;
-            return plugin.promiseQueue.addTask(() =>
+            plugin.promiseQueue.addTask(() =>
                 plugin.commit({
                     fromAuto: false,
-                    requestCustomMessage: true,
                     onlyStaged: true,
                 })
             );
+            return true;
         },
     });
 
@@ -297,9 +296,9 @@ export function addCommmands(plugin: ObsidianGit) {
             const file = app.workspace.getActiveFile();
             if (checking) {
                 return file !== null;
-            } else {
-                plugin.promiseQueue.addTask(() => plugin.stageFile(file!));
             }
+            plugin.promiseQueue.addTask(() => plugin.stageFile(file!));
+            return true;
         },
     });
 
@@ -310,9 +309,9 @@ export function addCommmands(plugin: ObsidianGit) {
             const file = app.workspace.getActiveFile();
             if (checking) {
                 return file !== null;
-            } else {
-                plugin.promiseQueue.addTask(() => plugin.unstageFile(file!));
             }
+            plugin.promiseQueue.addTask(() => plugin.unstageFile(file!));
+            return true;
         },
     });
 
@@ -327,7 +326,7 @@ export function addCommmands(plugin: ObsidianGit) {
         id: "remove-remote",
         name: t("commands.remove-remote"),
         callback: () =>
-            plugin.removeRemote().catch((e) => plugin.displayError(e)),
+            plugin.editRemotes().catch((e: unknown) => plugin.displayError(e)),
     });
 
     plugin.addCommand({
@@ -469,11 +468,11 @@ export function addCommmands(plugin: ObsidianGit) {
             if (checking) {
                 // only available on desktop
                 return gitManager instanceof SimpleGit;
-            } else {
-                plugin.tools
-                    .runRawCommand()
-                    .catch((e) => plugin.displayError(e));
             }
+            plugin.tools
+                .runRawCommand()
+                .catch((e) => plugin.displayError(e));
+            return true;
         },
     });
 
@@ -498,6 +497,7 @@ export function addCommmands(plugin: ObsidianGit) {
             }
 
             plugin.hunkActions.resetHunk();
+            return true;
         },
     });
 
@@ -512,6 +512,7 @@ export function addCommmands(plugin: ObsidianGit) {
                 );
             }
             plugin.promiseQueue.addTask(() => plugin.hunkActions.stageHunk());
+            return true;
         },
     });
 
@@ -527,6 +528,7 @@ export function addCommmands(plugin: ObsidianGit) {
             }
             const editor = plugin.hunkActions.editor!.editor;
             togglePreviewHunk(editor);
+            return true;
         },
     });
 
@@ -541,6 +543,7 @@ export function addCommmands(plugin: ObsidianGit) {
                 );
             }
             plugin.hunkActions.goToHunk("next");
+            return true;
         },
     });
 
@@ -555,6 +558,7 @@ export function addCommmands(plugin: ObsidianGit) {
                 );
             }
             plugin.hunkActions.goToHunk("prev");
+            return true;
         },
     });
 }

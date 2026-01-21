@@ -9,9 +9,9 @@ import type { DiffViewState } from "src/types";
 export default class DiffView extends ItemView {
     parser: DOMParser;
     gettingDiff = false;
-    state: DiffViewState;
+    state!: DiffViewState;
     gitRefreshRef: EventRef;
-    gitViewRefreshRef: EventRef;
+    gitViewRefreshRef!: EventRef;
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -29,11 +29,11 @@ export default class DiffView extends ItemView {
         );
     }
 
-    getViewType(): string {
+    override getViewType(): string {
         return DIFF_VIEW_CONFIG.type;
     }
 
-    getDisplayText(): string {
+    override getDisplayText(): string {
         if (this.state?.bFile != null) {
             let fileName = this.state.bFile.split("/").last();
             if (fileName?.endsWith(".md")) fileName = fileName.slice(0, -3);
@@ -43,11 +43,11 @@ export default class DiffView extends ItemView {
         return DIFF_VIEW_CONFIG.name;
     }
 
-    getIcon(): string {
+    override getIcon(): string {
         return DIFF_VIEW_CONFIG.icon;
     }
 
-    async setState(state: DiffViewState, _: ViewStateResult): Promise<void> {
+    override async setState(state: DiffViewState, _: ViewStateResult): Promise<void> {
         this.state = state;
 
         if (Platform.isMobile) {
@@ -58,17 +58,17 @@ export default class DiffView extends ItemView {
         await this.refresh();
     }
 
-    getState(): Record<string, unknown> {
+    override getState(): Record<string, unknown> {
         return this.state as unknown as Record<string, unknown>;
     }
 
-    onClose(): Promise<void> {
+    override onClose(): Promise<void> {
         this.app.workspace.offref(this.gitRefreshRef);
         this.app.workspace.offref(this.gitViewRefreshRef);
         return super.onClose();
     }
 
-    async onOpen(): Promise<void> {
+    override async onOpen(): Promise<void> {
         await this.refresh();
         return super.onOpen();
     }

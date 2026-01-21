@@ -11,7 +11,7 @@ const REMOVE_STALES_FREQUENCY = 60 * SECONDS;
  */
 class EventsPerFilePath {
     private eventsPerFilepath: Map<string, FileSubscribers> = new Map();
-    private removeStalesSubscribersTimer: number;
+    private removeStalesSubscribersTimer!: number;
 
     constructor() {
         this.startRemoveStalesSubscribersInterval();

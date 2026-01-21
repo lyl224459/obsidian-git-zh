@@ -2,7 +2,7 @@
  * Service for Git operations (commit, push, pull, fetch)
  */
 
-import { Notice } from "obsidian";
+import { Notice, moment } from "obsidian";
 import { t } from "../i18n";
 import { SimpleGit } from "../gitManager/simpleGit";
 import { IsomorphicGit } from "../gitManager/isomorphicGit";
@@ -16,7 +16,6 @@ import type {
 } from "./types";
 import { BaseService } from "./BaseService";
 import { CustomMessageModal } from "../ui/modals/customMessageModal";
-import moment from "moment";
 import { spawnAsync } from "../utils";
 
 export class GitOperationsService extends BaseService {
@@ -294,7 +293,7 @@ export class GitOperationsService extends BaseService {
             };
         } catch (error) {
             if (error instanceof NoNetworkError) {
-                this.plugin.handleNoNetworkError(error);
+                this.displayMessage(t("notices.no-network-connection"));
             } else {
                 this.displayError(error);
             }

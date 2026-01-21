@@ -489,25 +489,33 @@ export default {
             "changes-title": "更改",
             "staged-title": "已暂存",
             refresh: "刷新",
-            "no-changes": "没有更改",
+            "no-changes": "无更改",
         },
         history: {
             title: "历史记录",
-            "no-commits": "没有提交",
-            "loading": "正在加载...",
+            "no-commits": "无提交",
+            "loading": "加载中...",
         },
         diff: {
-            title: "差异视图",
-            "no-diff": "没有差异",
+            title: "差异对比",
+            "no-diff": "无差异",
+        },
+        commit: {
+            title: "Git 提交",
+            placeholder: "输入提交消息...",
+            staged: "已暂存",
+            unstaged: "未暂存",
+            "unstage-all": "全部取消暂存",
+            "stage-all": "全部暂存",
         },
     },
 
     // 状态栏
     statusBar: {
-        "last-update": "最后更新：{{time}}",
+        "last-update": "上次更新: {{time}}",
         "checking-repo": "正在检查仓库...",
         "initializing": "正在初始化...",
-        "up-to-date": "最新",
+        "up-to-date": "已是最新",
         "changes": "{{count}} 个更改",
         conflict: "冲突",
         "offline-mode": "离线模式",
@@ -526,8 +534,12 @@ export default {
 
     // 其他
     misc: {
-        file: "文件",
-        files: "文件",
-        roughly: " 大约",
+        file: "个文件",
+        files: "个文件",
+        roughly: "约",
+        refresh: "刷新",
+        "toggle-tree-list-view": "切换树状/列表视图",
+        clear: "清空",
+        "commit-and-sync": "提交并同步",
     },
 };

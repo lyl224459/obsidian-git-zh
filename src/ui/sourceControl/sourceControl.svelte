@@ -222,15 +222,15 @@
         <div class="nav-buttons-container">
             <div
                 id="backup-btn"
-                data-icon="arrow-up-circle"
+                data-icon="upload-cloud"
                 class="clickable-icon nav-action-button"
-                aria-label="Commit-and-sync"
+                aria-label="Commit and sync"
                 bind:this={buttons[0]}
                 onclick={commitAndSync}
             ></div>
             <div
                 id="commit-btn"
-                data-icon="check"
+                data-icon="check-circle-2"
                 class="clickable-icon nav-action-button"
                 aria-label="Commit"
                 bind:this={buttons[1]}
@@ -239,7 +239,7 @@
             <div
                 id="stage-all"
                 class="clickable-icon nav-action-button"
-                data-icon="plus-circle"
+                data-icon="package-check"
                 aria-label="Stage all"
                 bind:this={buttons[2]}
                 onclick={stageAll}
@@ -247,7 +247,7 @@
             <div
                 id="unstage-all"
                 class="clickable-icon nav-action-button"
-                data-icon="minus-circle"
+                data-icon="package-x"
                 aria-label="Unstage all"
                 bind:this={buttons[3]}
                 onclick={unstageAll}
@@ -255,7 +255,7 @@
             <div
                 id="push"
                 class="clickable-icon nav-action-button"
-                data-icon="upload"
+                data-icon="corner-up-right"
                 aria-label="Push"
                 bind:this={buttons[4]}
                 onclick={push}
@@ -263,7 +263,7 @@
             <div
                 id="pull"
                 class="clickable-icon nav-action-button"
-                data-icon="download"
+                data-icon="corner-down-left"
                 aria-label="Pull"
                 bind:this={buttons[5]}
                 onclick={pull}
@@ -272,11 +272,11 @@
                 id="layoutChange"
                 class="clickable-icon nav-action-button"
                 aria-label="Change Layout"
-                data-icon={showTree ? "list" : "folder"}
+                data-icon={showTree ? "list-tree" : "folder-closed"}
                 bind:this={buttons[6]}
                 onclick={() => {
                     showTree = !showTree;
-                    setIcon(buttons[6], showTree ? "list" : "folder");
+                    setIcon(buttons[6], showTree ? "list-tree" : "folder-closed");
                     plugin.settings.treeStructure = showTree;
                     void plugin.saveSettings();
                 }}
@@ -297,14 +297,20 @@
             {rows}
             class="commit-msg-input"
             spellcheck="true"
-            placeholder="Commit Message"
+            placeholder="Enter commit message..."
             bind:value={commitMessage}
+            onkeydown={(e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    commitMessage = plugin.settings.commitMessage;
+                }
+            }}
         ></textarea>
         {#if commitMessage}
             <div
                 class="git-commit-msg-clear-button"
                 onclick={() => (commitMessage = "")}
-                aria-label={"Clear"}
+                aria-label="Clear"
             ></div>
         {/if}
     </div>
@@ -339,36 +345,32 @@
                             >
                         </div>
                         <div class="tree-item-inner nav-folder-title-content">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="svg-icon lucide-package-check"
+                                style="margin-right: 6px;"
+                            >
+                                <path d="m16 16 2.5-2.5"/><path d="M10.5 5H18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1H7"/><path d="M8 16h.01"/><path d="M12 16h.01"/><path d="M16 16h.01"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/><path d="M8 8h.01"/><path d="M12 8h.01"/><path d="M16 8h.01"/></svg>
                             Staged Changes
                         </div>
 
                         <div class="git-tools">
                             <div class="buttons">
                                 <div
-                                    data-icon="minus"
-                                    aria-label="Unstage"
+                                    data-icon="package-x"
+                                    aria-label="Unstage all"
                                     bind:this={buttons[8]}
                                     onclick={unstageAll}
                                     class="clickable-icon"
-                                >
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 18 18"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="svg-icon lucide-minus"
-                                        ><line
-                                            x1="4"
-                                            y1="9"
-                                            x2="14"
-                                            y2="9"
-                                        /></svg
-                                    >
-                                </div>
+                                ></div>
                             </div>
                             <div class="files-count">
                                 {status.staged.length}
@@ -430,63 +432,37 @@
                         </div>
 
                         <div class="tree-item-inner nav-folder-title-content">
-                            Changes
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="svg-icon lucide-file-edit"
+                                style="margin-right: 6px;"
+                            >
+                                <path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5"/><polyline points="14 2 14 8 20 8"/><path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z"/></svg>
+                            Unstaged Changes
                         </div>
                         <div class="git-tools">
                             <div class="buttons">
                                 <div
-                                    data-icon="undo"
-                                    aria-label="Discard"
+                                    data-icon="trash"
+                                    aria-label="Discard all"
                                     onclick={discard}
                                     class="clickable-icon"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="svg-icon lucide-undo"
-                                        ><path d="M3 7v6h6" /><path
-                                            d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"
-                                        /></svg
-                                    >
-                                </div>
+                                ></div>
                                 <div
-                                    data-icon="plus"
-                                    aria-label="Stage"
+                                    data-icon="package-plus"
+                                    aria-label="Stage all"
                                     bind:this={buttons[9]}
                                     onclick={stageAll}
                                     class="clickable-icon"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="svg-icon lucide-plus"
-                                        ><line
-                                            x1="12"
-                                            y1="5"
-                                            x2="12"
-                                            y2="19"
-                                        /><line
-                                            x1="5"
-                                            y1="12"
-                                            x2="19"
-                                            y2="12"
-                                        /></svg
-                                    >
-                                </div>
+                                ></div>
                             </div>
                             <div class="files-count">
                                 {status.changed.length}
@@ -551,6 +527,20 @@
                             <div
                                 class="tree-item-inner nav-folder-title-content"
                             >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="svg-icon lucide-download"
+                                    style="margin-right: 6px;"
+                                >
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                                 Recently Pulled Files
                             </div>
 
@@ -594,15 +584,21 @@
         width: 100%;
         overflow: hidden;
         resize: none;
-        padding: 7px 5px;
-        background-color: var(--background-modifier-form-field);
+        padding: 8px 30px 8px 8px;
+        background-color: transparent;
+        border: none;
+        font-size: var(--font-ui-small);
+        min-height: 40px;
+        outline: none;
+        font-family: var(--font-interface);
+        color: var(--text-normal);
     }
 
     .git-commit-msg {
         position: relative;
         padding: 0;
         width: calc(100% - var(--size-4-8));
-        margin: 4px auto;
+        margin: 8px 4px;
     }
     main {
         .git-tools {
@@ -626,12 +622,12 @@
         border-radius: 50%;
         color: var(--search-clear-button-color);
         cursor: var(--cursor);
-        top: -4px;
-        right: 2px;
+        top: 6px;
+        right: 6px;
         bottom: 0px;
         line-height: 0;
-        height: var(--input-height);
-        width: 28px;
+        height: 24px;
+        width: 24px;
         margin: auto;
         padding: 0 0;
         text-align: center;
@@ -639,6 +635,10 @@
         justify-content: center;
         align-items: center;
         transition: color 0.15s ease-in-out;
+        
+        &:hover {
+            background-color: var(--background-modifier-hover);
+        }
     }
 
     .git-commit-msg-clear-button:after {

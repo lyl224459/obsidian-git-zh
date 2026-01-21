@@ -500,6 +500,14 @@ export default {
             title: "Diff View",
             "no-diff": "No diff",
         },
+        commit: {
+            title: "Git Commit",
+            placeholder: "Enter commit message...",
+            staged: "Staged",
+            unstaged: "Unstaged",
+            "unstage-all": "Unstage all",
+            "stage-all": "Stage all",
+        },
     },
 
     // Status bar
@@ -529,5 +537,9 @@ export default {
         file: "file",
         files: "files",
         roughly: " approx.",
+        refresh: "Refresh",
+        "toggle-tree-list-view": "Toggle tree/list view",
+        clear: "Clear",
+        "commit-and-sync": "Commit & Sync",
     },
 };

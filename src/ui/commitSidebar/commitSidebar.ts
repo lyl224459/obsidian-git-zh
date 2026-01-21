@@ -1,11 +1,11 @@
 import type { HoverParent, HoverPopover, WorkspaceLeaf } from "obsidian";
 import { ItemView } from "obsidian";
-import { SOURCE_CONTROL_VIEW_CONFIG } from "src/constants";
+import { COMMIT_SIDEBAR_VIEW_CONFIG } from "src/constants";
 import type ObsidianGit from "src/main";
-import SourceControlViewComponent from "./sourceControl.svelte";
+import CommitSidebarViewComponent from "./commitSidebar.svelte";
 import { mount, unmount } from "svelte";
 
-export default class GitView extends ItemView implements HoverParent {
+export default class GitCommitSidebarView extends ItemView implements HoverParent {
     plugin: ObsidianGit;
     private _view: Record<string, unknown> | undefined;
     hoverPopover: HoverPopover | null;
@@ -17,15 +17,15 @@ export default class GitView extends ItemView implements HoverParent {
     }
 
     getViewType(): string {
-        return SOURCE_CONTROL_VIEW_CONFIG.type;
+        return COMMIT_SIDEBAR_VIEW_CONFIG.type;
     }
 
     getDisplayText(): string {
-        return SOURCE_CONTROL_VIEW_CONFIG.name;
+        return COMMIT_SIDEBAR_VIEW_CONFIG.name;
     }
 
     getIcon(): string {
-        return SOURCE_CONTROL_VIEW_CONFIG.icon;
+        return COMMIT_SIDEBAR_VIEW_CONFIG.icon;
     }
 
     onClose(): Promise<void> {
@@ -41,7 +41,7 @@ export default class GitView extends ItemView implements HoverParent {
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             unmount(this._view);
         }
-        this._view = mount(SourceControlViewComponent, {
+        this._view = mount(CommitSidebarViewComponent, {
             target: this.contentEl,
             props: {
                 plugin: this.plugin,

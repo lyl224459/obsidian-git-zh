@@ -76,6 +76,12 @@ export const SOURCE_CONTROL_VIEW_CONFIG = {
     icon: "git-pull-request",
 };
 
+export const COMMIT_SIDEBAR_VIEW_CONFIG = {
+    type: "git-commit-sidebar",
+    name: "Git Commit Sidebar",
+    icon: "save",
+};
+
 export const HISTORY_VIEW_CONFIG = {
     type: "git-history-view",
     name: "History",

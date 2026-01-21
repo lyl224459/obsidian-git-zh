@@ -28,6 +28,7 @@ import {
     HISTORY_VIEW_CONFIG,
     SOURCE_CONTROL_VIEW_CONFIG,
     SPLIT_DIFF_VIEW_CONFIG,
+    COMMIT_SIDEBAR_VIEW_CONFIG,
 } from "./constants";
 import type { GitManager } from "./gitManager/gitManager";
 import { IsomorphicGit } from "./gitManager/isomorphicGit";
@@ -63,6 +64,7 @@ import {
 import { DiscardModal, type DiscardResult } from "./ui/modals/discardModal";
 import { HunkActions } from "./editor/signs/hunkActions";
 import { EditorIntegration } from "./editor/editorIntegration";
+import GitCommitSidebarView from "./ui/commitSidebar/commitSidebar";
 
 export default class ObsidianGit extends Plugin {
     gitManager: GitManager;
@@ -296,6 +298,20 @@ export default class ObsidianGit extends Plugin {
         this.registerView(SPLIT_DIFF_VIEW_CONFIG.type, (leaf) => {
             return new SplitDiffView(leaf, this);
         });
+
+        this.registerView(COMMIT_SIDEBAR_VIEW_CONFIG.type, (leaf) => {
+            return new GitCommitSidebarView(leaf, this);
+        });
+
+        // Add ribbon icon to open the Git commit sidebar in the left ribbon
+        this.addRibbonIcon(
+            "save",
+            t("Open Git Commit Sidebar"),
+            async (evt: MouseEvent) => {
+                this.activateView(COMMIT_SIDEBAR_VIEW_CONFIG.type, evt);
+            }
+        );
+
         this.addRibbonIcon(
             "git-pull-request",
             t("commands.open-git-view"),
@@ -1469,140 +1485,12 @@ I strongly recommend to use "Source mode" for viewing the conflicted files. For 
             await this.gitManager.fetch(remoteName);
             const branches =
                 await this.gitManager.getRemoteBranches(remoteName);
-            const branchModal = new GeneralModal(this, {
+            const nameModal = new GeneralModal(this, {
                 options: branches,
                 placeholder:
                     "Select or create a new remote branch by typing its name and selecting it",
             });
-            const branch = await branchModal.openAndGetResult();
-            if (branch == undefined) return;
-            if (!branch.startsWith(remoteName + "/")) {
-                // If the branch does not start with the remote name, prepend it
-                return `${remoteName}/${branch}`;
-            }
-            return branch; // Already in the correct format
+            return nameModal.openAndGetResult();
         }
-    }
-
-    async removeRemote() {
-        if (!(await this.isAllInitialized())) return;
-
-        const remotes = await this.gitManager.getRemotes();
-
-        const nameModal = new GeneralModal(this, {
-            options: remotes,
-            placeholder: "Select a remote",
-        });
-        const remoteName = await nameModal.openAndGetResult();
-
-        if (remoteName) {
-            await this.gitManager.removeRemote(remoteName);
-        }
-    }
-
-    onActiveLeafChange(leaf: WorkspaceLeaf | null): void {
-        const view = leaf?.view;
-        // Prevent removing focus when switching to other panes than file panes like search or GitView
-        if (
-            !view?.getState().file &&
-            !(view instanceof DiffView || view instanceof SplitDiffView)
-        )
-            return;
-
-        const sourceControlLeaf = this.app.workspace
-            .getLeavesOfType(SOURCE_CONTROL_VIEW_CONFIG.type)
-            .first();
-        const historyLeaf = this.app.workspace
-            .getLeavesOfType(HISTORY_VIEW_CONFIG.type)
-            .first();
-
-        // Clear existing active state
-        sourceControlLeaf?.view.containerEl
-            .querySelector(`div.tree-item-self.is-active`)
-            ?.removeClass("is-active");
-        historyLeaf?.view.containerEl
-            .querySelector(`div.tree-item-self.is-active`)
-            ?.removeClass("is-active");
-
-        if (
-            leaf?.view instanceof DiffView ||
-            leaf?.view instanceof SplitDiffView
-        ) {
-            const path = leaf.view.state.bFile;
-            const escapedPath = path.replace(/["\\]/g, "\\$&");
-            this.lastDiffViewState = leaf.view.getState();
-            let el: Element | undefined | null;
-            if (sourceControlLeaf && leaf.view.state.aRef == "HEAD") {
-                el = sourceControlLeaf.view.containerEl.querySelector(
-                    `div.staged div.tree-item-self[data-path="${escapedPath}"]`
-                );
-            } else if (sourceControlLeaf && leaf.view.state.aRef == "") {
-                el = sourceControlLeaf.view.containerEl.querySelector(
-                    `div.changes div.tree-item-self[data-path="${escapedPath}"]`
-                );
-            } else if (historyLeaf) {
-                el = historyLeaf.view.containerEl.querySelector(
-                    `div.tree-item-self[data-path='${escapedPath}']`
-                );
-            }
-            el?.addClass("is-active");
-        } else {
-            this.lastDiffViewState = undefined;
-        }
-    }
-
-    handleNoNetworkError(_: NoNetworkError): void {
-        if (!this.state.offlineMode) {
-            this.displayError(
-                t("notices.going-offline"),
-                2000
-            );
-        } else {
-            this.log(t("notices.already-offline"));
-        }
-        this.setPluginState({
-            gitAction: CurrentGitAction.idle,
-            offlineMode: true,
-        });
-    }
-
-    // region: displaying / formatting messages
-    displayMessage(message: string, timeout: number = 4 * 1000): void {
-        this.statusBar?.displayMessage(message.toLowerCase(), timeout);
-
-        if (!this.settings.disablePopups) {
-            if (
-                !this.settings.disablePopupsForNoChanges ||
-                !message.startsWith("No changes")
-            ) {
-                new Notice(message, 5 * 1000);
-            }
-        }
-
-        this.log(message);
-    }
-
-    displayError(data: unknown, timeout: number = 10 * 1000): void {
-        if (data instanceof Errors.UserCanceledError) {
-            new Notice(t("notices.aborted"));
-            return;
-        }
-        let error: Error;
-        if (data instanceof Error) {
-            error = data;
-        } else {
-            error = new Error(String(data));
-        }
-
-        this.setPluginState({ gitAction: CurrentGitAction.idle });
-        if (this.settings.showErrorNotices) {
-            new Notice(error.message, timeout);
-        }
-        console.error(`${this.manifest.id}:`, error.stack);
-        this.statusBar?.displayMessage(error.message.toLowerCase(), timeout);
-    }
-
-    log(...data: unknown[]) {
-        console.log(`${this.manifest.id}:`, ...data);
     }
 }

@@ -100,20 +100,12 @@
                         "git-source-control"
                     )}
                 class="tree-item nav-folder"
-                class:is-collapsed={closed[entity.path]}
+                class:is-collapsed={$closed[entity.path]}
             >
-                <div
-                    class="tree-item-self is-clickable nav-folder-title"
-                    data-tooltip-position={side}
-                    aria-label={entity.vaultPath}
-                >
-                    <div
-                        data-icon="folder"
-                        style="padding-right: 5px; display: flex; "
-                    ></div>
+                <div class="tree-item-self is-clickable nav-folder-title">
                     <div
                         class="tree-item-icon nav-folder-collapse-indicator collapse-icon"
-                        class:is-collapsed={closed[entity.path]}
+                        class:is-collapsed={$closed[entity.path]}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -129,103 +121,45 @@
                             ><path d="M3 8L12 17L21 8" /></svg
                         >
                     </div>
-                    <div class="tree-item-inner nav-folder-title-content">
+                    <div
+                        class="tree-item-inner nav-folder-title-content"
+                        data-path={entity.vaultPath}
+                        data-tooltip-position={side}
+                        aria-label={entity.vaultPath}
+                    >
                         {entity.title}
                     </div>
                     <div class="git-tools">
                         <div class="buttons">
-                            {#if fileType == FileType.staged}
+                            {#if fileType == FileType.changed}
                                 <div
-                                    data-icon="minus"
-                                    aria-label="Unstage"
-                                    onclick={(event) =>
-                                        unstage(event, entity.path)}
-                                    class="clickable-icon"
-                                >
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 18 18"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="svg-icon lucide-minus"
-                                        ><line
-                                            x1="4"
-                                            y1="9"
-                                            x2="14"
-                                            y2="9"
-                                        /></svg
-                                    >
-                                </div>
-                            {:else}
-                                <div
-                                    data-icon="undo"
+                                    data-icon="trash"
                                     aria-label="Discard"
-                                    onclick={(event) => discard(event, entity)}
                                     class="clickable-icon"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="svg-icon lucide-undo"
-                                        ><path d="M3 7v6h6" /><path
-                                            d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"
-                                        /></svg
-                                    >
-                                </div>
+                                    onclick={(event) => discard(event, entity)}
+                                ></div>
                                 <div
                                     data-icon="plus"
                                     aria-label="Stage"
-                                    onclick={(event) =>
-                                        stage(event, entity.path)}
                                     class="clickable-icon"
-                                >
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 18 18"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="svg-icon lucide-plus"
-                                        ><line
-                                            x1="9"
-                                            y1="4"
-                                            x2="9"
-                                            y2="14"
-                                        /><line
-                                            x1="4"
-                                            y1="9"
-                                            x2="14"
-                                            y2="9"
-                                        /></svg
-                                    >
-                                </div>
+                                    onclick={(event) => stage(event, entity.path)}
+                                ></div>
+                            {:else if fileType == FileType.staged}
+                                <div
+                                    data-icon="minus"
+                                    aria-label="Unstage"
+                                    class="clickable-icon"
+                                    onclick={(event) => unstage(event, entity.path)}
+                                ></div>
                             {/if}
-                            <div style="width:11px"></div>
                         </div>
+                        <div class="files-count">{entity.children.length}</div>
                     </div>
                 </div>
-
-                {#if !closed[entity.path]}
-                    <div
-                        class="tree-item-children nav-folder-children"
-                        transition:slide|local={{ duration: 150 }}
-                    >
+                {#if !$closed[entity.path]}
+                    <div class="tree-item-children nav-folder-children">
                         <TreeComponent
-                            hierarchy={entity as StatusRootTreeItem}
+                            hierarchy={entity}
                             {plugin}
                             {view}
                             {fileType}
@@ -236,6 +170,4 @@
             </div>
         {/if}
     {/each}
-
-    <TooManyFilesComponent files={hierarchy.children} />
 </main>

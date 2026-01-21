@@ -99,20 +99,29 @@
     }
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<main class="git-view">
+<div class="git-view">
     <div class="nav-header">
         <div class="nav-buttons-container">
             <div
                 id="layoutChange"
                 class="clickable-icon nav-action-button"
-                data-icon={showTree ? "list" : "folder"}
                 aria-label="Change Layout"
+                data-icon={showTree ? "list-tree" : "folder-closed"}
                 bind:this={buttons[0]}
+                role="button"
+                tabindex="0"
+                onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        showTree = !showTree;
+                        setIcon(buttons[0], showTree ? "list-tree" : "folder-closed");
+                        plugin.settings.treeStructure = showTree;
+                        void plugin.saveSettings();
+                    }
+                }}
                 onclick={() => {
                     showTree = !showTree;
-                    setIcon(buttons[0], showTree ? "list" : "folder");
+                    setIcon(buttons[0], showTree ? "list-tree" : "folder-closed");
                     plugin.settings.treeStructure = showTree;
                     void plugin.saveSettings();
                 }}
@@ -124,24 +133,62 @@
                 data-icon="refresh-cw"
                 aria-label="Refresh"
                 bind:this={buttons[1]}
+                role="button"
+                tabindex="0"
+                onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        triggerRefresh();
+                    }
+                }}
                 onclick={triggerRefresh}
             ></div>
         </div>
     </div>
 
-    <div class="nav-files-container" style="position: relative;">
-        {#if logs}
-            <div class="tree-item nav-folder mod-root">
-                {#each logs as log}
-                    <LogComponent {view} {showTree} {log} {plugin} />
-                {/each}
-            </div>
-        {/if}
-        <div id="sentinel"></div>
-        <!-- Ensure that the sentinel item is reachable with the overlaying status bar and indicate that the end of the list is reached  -->
-        <div style="margin-bottom:40px"></div>
-    </div>
-</main>
+    {#if logs}
+        <div class="nav-files-container">
+            {#each logs as log, i}
+                <LogComponent log={log} {view} plugin={plugin} />
+            {/each}
+            <div id="sentinel"></div>
+        </div>
+    {:else}
+        <div class="obsidian-git-center">
+            <h3>Loading history...</h3>
+        </div>
+    {/if}
+</div>
 
-<style lang="scss">
+<style>
+    #sentinel {
+        height: 20px;
+    }
+    
+    .nav-header {
+        padding: 8px;
+        border-bottom: 1px solid var(--background-modifier-border);
+    }
+    
+    .nav-buttons-container {
+        display: flex;
+        gap: 4px;
+        justify-content: flex-end;
+    }
+    
+    .git-view {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        height: 100%;
+        background-color: var(--background-primary);
+        min-width: 0;
+        min-height: 0;
+    }
+    
+    .nav-files-container {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
 </style>

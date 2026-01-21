@@ -64,9 +64,26 @@ import { DiscardModal, type DiscardResult } from "./ui/modals/discardModal";
 import { HunkActions } from "./editor/signs/hunkActions";
 import { EditorIntegration } from "./editor/editorIntegration";
 import GitCommitSidebarView from "./ui/commitSidebar/commitSidebar";
+import {
+    GitOperationsService,
+    BranchService,
+    FileService,
+    RemoteService,
+    RepositoryService,
+} from "./services";
 
 export default class ObsidianGit extends Plugin {
+    // Git Manager
     gitManager: GitManager;
+    
+    // Services
+    gitOperations!: GitOperationsService;
+    branchService!: BranchService;
+    fileService!: FileService;
+    remoteService!: RemoteService;
+    repositoryService!: RepositoryService;
+    
+    // Managers and Tools
     automaticsManager = new AutomaticsManager(this);
     tools = new Tools(this);
     localStorage = new LocalStorageSettings(this);
@@ -152,6 +169,17 @@ export default class ObsidianGit extends Plugin {
 
     refreshUpdatedHead() {}
 
+    /**
+     * 初始化所有服务实例
+     */
+    private initializeServices(): void {
+        this.gitOperations = new GitOperationsService(this);
+        this.branchService = new BranchService(this);
+        this.fileService = new FileService(this);
+        this.remoteService = new RemoteService(this);
+        this.repositoryService = new RepositoryService(this);
+    }
+
     async onload() {
         console.log(
             "loading " +
@@ -172,6 +200,9 @@ export default class ObsidianGit extends Plugin {
         } else {
             initI18n();
         }
+
+        // 初始化服务层
+        this.initializeServices();
 
         this.settingsTab = new ObsidianGitSettingsTab(this.app, this);
         this.addSettingTab(this.settingsTab);
@@ -651,115 +682,11 @@ export default class ObsidianGit extends Plugin {
     }
 
     async createNewRepo() {
-        try {
-            await this.gitManager.init();
-            new Notice(t("notices.initialized-repo"));
-            await this.init({ fromReload: true });
-        } catch (e) {
-            this.displayError(e);
-        }
+        await this.repositoryService.createNewRepo();
     }
 
     async cloneNewRepo() {
-        const modal = new GeneralModal(this, {
-            placeholder: "Enter remote URL",
-        });
-        const url = await modal.openAndGetResult();
-        if (url) {
-            const confirmOption = "Vault Root";
-            let dir = await new GeneralModal(this, {
-                options:
-                    this.gitManager instanceof IsomorphicGit
-                        ? [confirmOption]
-                        : [],
-                placeholder:
-                    "Enter directory for clone. It needs to be empty or not existent.",
-                allowEmpty: this.gitManager instanceof IsomorphicGit,
-            }).openAndGetResult();
-            if (dir == undefined) return;
-            if (dir === confirmOption) {
-                dir = ".";
-            }
-
-            dir = normalizePath(dir);
-            if (dir === "/") {
-                dir = ".";
-            }
-
-            if (dir === ".") {
-                const modal = new GeneralModal(this, {
-                    options: ["NO", "YES"],
-                    placeholder: `Does your remote repo contain a ${this.app.vault.configDir} directory at the root?`,
-                    onlySelection: true,
-                });
-                const containsConflictDir = await modal.openAndGetResult();
-                if (containsConflictDir === undefined) {
-                    new Notice(t("notices.aborted-clone"));
-                    return;
-                } else if (containsConflictDir === "YES") {
-                    const confirmOption =
-                        "DELETE ALL YOUR LOCAL CONFIG AND PLUGINS";
-                    const modal = new GeneralModal(this, {
-                        options: ["Abort clone", confirmOption],
-                        placeholder: `To avoid conflicts, the local ${this.app.vault.configDir} directory needs to be deleted.`,
-                        onlySelection: true,
-                    });
-                    const shouldDelete =
-                        (await modal.openAndGetResult()) === confirmOption;
-                    if (shouldDelete) {
-                        await this.app.vault.adapter.rmdir(
-                            this.app.vault.configDir,
-                            true
-                        );
-                    } else {
-                        new Notice(t("notices.aborted-clone"));
-                        return;
-                    }
-                }
-            }
-            const depth = await new GeneralModal(this, {
-                placeholder:
-                    "Specify depth of clone. Leave empty for full clone.",
-                allowEmpty: true,
-            }).openAndGetResult();
-            let depthInt = undefined;
-            if (depth === undefined) {
-                new Notice(t("notices.aborted-clone"));
-                return;
-            }
-
-            if (depth !== "") {
-                depthInt = parseInt(depth);
-                if (isNaN(depthInt)) {
-                    new Notice(t("notices.invalid-depth"));
-                    return;
-                }
-            }
-            new Notice(t("notices.cloning-repo", { dir }));
-            const oldBase = this.settings.basePath;
-            const customDir = dir && dir !== ".";
-            //Set new base path before clone to ensure proper .git/index file location in isomorphic-git
-            if (customDir) {
-                this.settings.basePath = dir;
-            }
-            try {
-                await this.gitManager.clone(
-                    formatRemoteUrl(url),
-                    dir,
-                    depthInt
-                );
-                new Notice(t("notices.cloned-repo-success"));
-                new Notice(t("notices.restart-obsidian"));
-
-                if (customDir) {
-                    await this.saveSettings();
-                }
-            } catch (error) {
-                this.displayError(error);
-                this.settings.basePath = oldBase;
-                await this.saveSettings();
-            }
-        }
+        await this.repositoryService.cloneRepo();
     }
 
     /**
@@ -1182,104 +1109,38 @@ export default class ObsidianGit extends Plugin {
 
     async stageFile(file: TFile): Promise<boolean> {
         if (!(await this.isAllInitialized())) return false;
-
-        await this.gitManager.stage(file.path, true);
-
-        this.app.workspace.trigger("obsidian-git:refresh");
-
-        this.setPluginState({ gitAction: CurrentGitAction.idle });
-        return true;
+        const result = await this.fileService.stageFile(file);
+        return result.success;
     }
 
     async unstageFile(file: TFile): Promise<boolean> {
         if (!(await this.isAllInitialized())) return false;
-
-        await this.gitManager.unstage(file.path, true);
-
-        this.app.workspace.trigger("obsidian-git:refresh");
-
-        this.setPluginState({ gitAction: CurrentGitAction.idle });
-        return true;
+        const result = await this.fileService.unstageFile(file);
+        return result.success;
     }
 
     async switchBranch(): Promise<string | undefined> {
         if (!(await this.isAllInitialized())) return;
-
-        const branchInfo = await this.gitManager.branchInfo();
-        const selectedBranch = await new BranchModal(
-            this,
-            branchInfo.branches
-        ).openAndGetReslt();
-
-        if (selectedBranch != undefined) {
-            await this.gitManager.checkout(selectedBranch);
-            this.displayMessage(t("notices.switched-branch", { branch: selectedBranch }));
-            this.app.workspace.trigger("obsidian-git:refresh");
-            await this.branchBar?.display();
-            return selectedBranch;
-        }
+        const result = await this.branchService.switchBranch();
+        return result.success ? result.value.branchName : undefined;
     }
 
     async switchRemoteBranch(): Promise<string | undefined> {
         if (!(await this.isAllInitialized())) return;
-
-        const selectedBranch = (await this.selectRemoteBranch()) || "";
-
-        const [remote, branch] = splitRemoteBranch(selectedBranch);
-
-        if (branch != undefined && remote != undefined) {
-            await this.gitManager.checkout(branch, remote);
-            this.displayMessage(t("notices.switched-branch", { branch: selectedBranch }));
-            await this.branchBar?.display();
-            return selectedBranch;
-        }
+        const result = await this.branchService.switchRemoteBranch();
+        return result.success ? result.value.branchName : undefined;
     }
 
     async createBranch(): Promise<string | undefined> {
         if (!(await this.isAllInitialized())) return;
-
-        const newBranch = await new GeneralModal(this, {
-            placeholder: "Create new branch",
-        }).openAndGetResult();
-        if (newBranch != undefined) {
-            await this.gitManager.createBranch(newBranch);
-            this.displayMessage(t("notices.created-branch", { branch: newBranch }));
-            await this.branchBar?.display();
-            return newBranch;
-        }
+        const result = await this.branchService.createBranch();
+        return result.success ? result.value.branchName : undefined;
     }
 
     async deleteBranch(): Promise<string | undefined> {
         if (!(await this.isAllInitialized())) return;
-
-        const branchInfo = await this.gitManager.branchInfo();
-        if (branchInfo.current) branchInfo.branches.remove(branchInfo.current);
-        const branch = await new GeneralModal(this, {
-            options: branchInfo.branches,
-            placeholder: "Delete branch",
-            onlySelection: true,
-        }).openAndGetResult();
-        if (branch != undefined) {
-            let force = false;
-            const merged = await this.gitManager.branchIsMerged(branch);
-            // Using await inside IF throws exception
-            if (!merged) {
-                const forceAnswer = await new GeneralModal(this, {
-                    options: ["YES", "NO"],
-                    placeholder:
-                        "This branch isn't merged into HEAD. Force delete?",
-                    onlySelection: true,
-                }).openAndGetResult();
-                if (forceAnswer !== "YES") {
-                    return;
-                }
-                force = forceAnswer === "YES";
-            }
-            await this.gitManager.deleteBranch(branch, force);
-            this.displayMessage(t("notices.deleted-branch", { branch }));
-            await this.branchBar?.display();
-            return branch;
-        }
+        const result = await this.branchService.deleteBranch();
+        return result.success ? result.value.branchName : undefined;
     }
 
     /** Ensures that the upstream branch is set.
@@ -1290,97 +1151,19 @@ export default class ObsidianGit extends Plugin {
      * to allow pulling/pushing only the submodules and not the outer repo.
      */
     async remotesAreSet(): Promise<boolean> {
-        if (this.settings.updateSubmodules) {
-            return true;
-        }
-        if (!(await this.gitManager.branchInfo()).tracking) {
-            new Notice(t("notices.no-upstream-branch"));
-            return await this.setUpstreamBranch();
-        }
-        return true;
+        return await this.remoteService.ensureRemotesSet();
     }
 
     async setUpstreamBranch(): Promise<boolean> {
-        const remoteBranch = await this.selectRemoteBranch();
-
-        if (remoteBranch == undefined) {
-            this.displayError(t("notices.aborted-no-upstream"), 10000);
-            this.setPluginState({ gitAction: CurrentGitAction.idle });
-            return false;
-        } else {
-            await this.gitManager.updateUpstreamBranch(remoteBranch);
-            this.displayMessage(t("notices.set-upstream", { branch: remoteBranch }));
-            this.setPluginState({ gitAction: CurrentGitAction.idle });
-            return true;
-        }
+        const result = await this.remoteService.setUpstreamBranch();
+        this.setPluginState({ gitAction: CurrentGitAction.idle });
+        return result.success;
     }
 
     async discardAll(path?: string): Promise<DiscardResult> {
         if (!(await this.isAllInitialized())) return false;
-
-        const status = await this.gitManager.status({ path });
-
-        let filesToDeleteCount = 0;
-        let filesToDiscardCount = 0;
-        for (const file of status.changed) {
-            if (file.workingDir == "U") {
-                filesToDeleteCount++;
-            } else {
-                filesToDiscardCount++;
-            }
-        }
-        if (filesToDeleteCount + filesToDiscardCount == 0) {
-            return false;
-        }
-
-        const result = await new DiscardModal({
-            app: this.app,
-            filesToDeleteCount,
-            filesToDiscardCount,
-            path: path ?? "",
-        }).openAndGetResult();
-
-        switch (result) {
-            case false:
-                return result;
-            case "discard":
-                await this.gitManager.discardAll({
-                    dir: path,
-                    status: this.cachedStatus,
-                });
-                break;
-            case "delete": {
-                await this.gitManager.discardAll({
-                    dir: path,
-                    status: this.cachedStatus,
-                });
-                const untrackedPaths = await this.gitManager.getUntrackedPaths({
-                    path,
-                    status: this.cachedStatus,
-                });
-                for (const file of untrackedPaths) {
-                    const vaultPath =
-                        this.gitManager.getRelativeVaultPath(file);
-                    const tFile =
-                        this.app.vault.getAbstractFileByPath(vaultPath);
-
-                    if (tFile) {
-                        await this.app.fileManager.trashFile(tFile);
-                    } else {
-                        if (file.endsWith("/")) {
-                            await this.app.vault.adapter.rmdir(vaultPath, true);
-                        } else {
-                            await this.app.vault.adapter.remove(vaultPath);
-                        }
-                    }
-                }
-                break;
-            }
-            default:
-                assertNever(result);
-        }
-        this.app.workspace.trigger("obsidian-git:refresh");
-        return result;
+        const result = await this.fileService.discardAll({ path });
+        return result.success ? result.value : false;
     }
 
     async handleConflict(conflicted?: string[]): Promise<void> {

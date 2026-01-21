@@ -66,7 +66,7 @@ export function adaptiveInitialColoredWaitingLineAuthoring(
         computeAdaptiveInitialColoringAgeInDays() ??
         maxAgeInDaysFromSettings(settings) * 0.25;
 
-    const slightlyOlderAgeForInitialRender: moment.Moment = moment().add(
+    const slightlyOlderAgeForInitialRender: moment.Moment = window.moment().add(
         -ageForInitialRender,
         "days"
     );

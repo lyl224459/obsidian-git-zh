@@ -67,8 +67,8 @@ export class TextGutter extends GutterMarker {
  */
 export class LineAuthoringGutter extends GutterMarker {
     private precomputedDomProvider?: () => HTMLElement;
-    public readonly point = false;
-    public readonly elementClass = "obs-git-blame-gutter";
+    public override readonly point = false;
+    public override readonly elementClass = "obs-git-blame-gutter";
 
     /**
      * **This should only be called {@link lineAuthoringGutterMarker}!**
@@ -288,16 +288,17 @@ export class LineAuthoringGutter extends GutterMarker {
                 break;
             case "natural language":
                 dateTimeFormatting = (time) => {
-                    const diff = time.diff(moment());
+                    const now = window.moment();
+                    const diff = time.diff(now);
                     const addFluentSuffix = true; // 2 weeks -> 2 weeks ago
-                    return moment.duration(diff).humanize(addFluentSuffix);
+                    return window.moment.duration(diff).humanize(addFluentSuffix);
                 };
                 break;
             default:
                 return impossibleBranch(dateTimeFormatOptions);
         }
 
-        let authoringDate: moment.Moment = moment.unix(
+        let authoringDate: moment.Moment = window.moment.unix(
             nonZeroCommit.author.epochSeconds
         );
 

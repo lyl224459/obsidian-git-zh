@@ -31,8 +31,8 @@ import { GitManager } from "./gitManager";
 import { t } from "../i18n";
 
 export class SimpleGit extends GitManager {
-    git: simple.SimpleGit;
-    absoluteRepoPath: string;
+    git!: simple.SimpleGit;
+    absoluteRepoPath!: string;
     watchAbortController: AbortController | undefined;
     useDefaultWindowsGitPath: boolean = false;
     constructor(plugin: ObsidianGit) {
@@ -136,7 +136,7 @@ export class SimpleGit extends GitManager {
     }
 
     // Constructs a path relative to the vault from a path relative to the git repository
-    getRelativeVaultPath(filePath: string): string {
+    override getRelativeVaultPath(filePath: string): string {
         const adapter = this.app.vault.adapter as FileSystemAdapter;
         const from = adapter.getBasePath();
 
@@ -152,7 +152,7 @@ export class SimpleGit extends GitManager {
     // Constructs a path relative to the git repository from a path relative to the vault
     //
     // @param doConversion - If false, the path is returned as is. This is added because that parameter is often passed on to functions where this method is called.
-    getRelativeRepoPath(
+    override getRelativeRepoPath(
         filePath: string,
         doConversion: boolean = true
     ): string {
@@ -1009,11 +1009,11 @@ export class SimpleGit extends GitManager {
         }
     }
 
-    updateGitPath(_: string): Promise<void> {
+    override updateGitPath(_: string): Promise<void> {
         return this.setGitInstance();
     }
 
-    updateBasePath(_: string): Promise<void> {
+    override updateBasePath(_: string): Promise<void> {
         return this.setGitInstance(true);
     }
 

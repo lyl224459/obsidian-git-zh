@@ -298,7 +298,7 @@ export abstract class GitManager {
 
         template = template.replace(
             "{{date}}",
-            moment().format(this.plugin.settings.commitDateFormat)
+            window.moment().format(this.plugin.settings.commitDateFormat)
         );
         if (this.plugin.settings.listChangedFilesInMessageBody) {
             const status2 = status ?? (await this.status());

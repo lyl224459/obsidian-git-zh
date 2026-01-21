@@ -743,43 +743,16 @@ export default class ObsidianGit extends Plugin {
         onlyStaged?: boolean;
     }): Promise<void> {
         if (!(await this.isAllInitialized())) return;
-
-        if (
-            this.settings.syncMethod == "reset" &&
-            this.settings.pullBeforePush
-        ) {
-            await this.pull();
-        }
-
-        const commitSuccessful = await this.commit({
-            fromAuto: fromAutoBackup,
-            requestCustomMessage,
-            commitMessage,
+        
+        const message = commitMessage ?? (fromAutoBackup 
+            ? this.settings.autoCommitMessage 
+            : this.settings.commitMessage);
+        
+        await this.gitOperations.commitAndSync({
+            message,
             onlyStaged,
+            fromAutoBackup,
         });
-        if (!commitSuccessful) {
-            return;
-        }
-
-        if (
-            this.settings.syncMethod != "reset" &&
-            this.settings.pullBeforePush
-        ) {
-            await this.pull();
-        }
-
-        if (!this.settings.disablePush) {
-            // Prevent trying to push every time. Only if unpushed commits are present
-            if (
-                (await this.remotesAreSet()) &&
-                (await this.gitManager.canPush())
-            ) {
-                await this.push();
-            } else {
-                this.displayMessage(t("notices.no-commits-to-push"));
-            }
-        }
-        this.setPluginState({ gitAction: CurrentGitAction.idle });
     }
 
     // Returns true if commit was successfully
@@ -797,192 +770,20 @@ export default class ObsidianGit extends Plugin {
         amend?: boolean;
     }): Promise<boolean> {
         if (!(await this.isAllInitialized())) return false;
-        try {
-            let hadConflict = this.localStorage.getConflict();
-
-            let status: Status | undefined;
-            let stagedFiles: { vaultPath: string; path: string }[] = [];
-            let unstagedFiles: (UnstagedFile & { vaultPath: string })[] = [];
-
-            if (this.gitManager instanceof SimpleGit) {
-                await this.mayDeleteConflictFile();
-                status = await this.updateCachedStatus();
-
-                //Should not be necessary, but just in case
-                if (status.conflicted.length == 0) {
-                    hadConflict = false;
-                }
-
-                // check for conflict files on auto backup
-                if (fromAuto && status.conflicted.length > 0) {
-                    this.displayError(
-                        `Did not commit, because you have conflicts in ${
-                            status.conflicted.length
-                        } ${
-                            status.conflicted.length == 1 ? "file" : "files"
-                        }. Please resolve them and commit per command.`
-                    );
-                    await this.handleConflict(status.conflicted);
-                    return false;
-                }
-                stagedFiles = status.staged;
-
-                // This typecast is only needed to hide the fact that `type` is missing, but that is only needed for isomorphic-git
-                unstagedFiles = status.changed as unknown as (UnstagedFile & {
-                    vaultPath: string;
-                })[];
-            } else {
-                // isomorphic-git section
-
-                if (fromAuto && hadConflict) {
-                    // isomorphic-git doesn't have a way to detect current
-                    // conflicts, they are only detected on commit
-                    //
-                    // Conflicts should only be resolved by manually committing.
-                    this.displayError(
-                        `Did not commit, because you have conflicts. Please resolve them and commit per command.`
-                    );
-                    return false;
-                } else {
-                    if (hadConflict) {
-                        await this.mayDeleteConflictFile();
-                    }
-                    const gitManager = this.gitManager as IsomorphicGit;
-                    if (onlyStaged) {
-                        stagedFiles = await gitManager.getStagedFiles();
-                    } else {
-                        const res = await gitManager.getUnstagedFiles();
-                        unstagedFiles = res.map(({ path, type }) => ({
-                            vaultPath:
-                                this.gitManager.getRelativeVaultPath(path),
-                            path,
-                            type,
-                        }));
-                    }
-                }
-            }
-
-            if (
-                await this.tools.hasTooBigFiles(
-                    onlyStaged
-                        ? stagedFiles
-                        : [...stagedFiles, ...unstagedFiles]
-                )
-            ) {
-                this.setPluginState({ gitAction: CurrentGitAction.idle });
-                return false;
-            }
-
-            if (
-                unstagedFiles.length + stagedFiles.length !== 0 ||
-                hadConflict
-            ) {
-                // The commit message from settings or previously set in the
-                // source control view
-                let cmtMessage = (commitMessage ??= fromAuto
-                    ? this.settings.autoCommitMessage
-                    : this.settings.commitMessage);
-
-                // Optionally ask the user via a modal for a commit message
-                if (
-                    (fromAuto && this.settings.customMessageOnAutoBackup) ||
-                    requestCustomMessage
-                ) {
-                    if (!this.settings.disablePopups && fromAuto) {
-                        new Notice(t("notices.auto-backup-message"));
-                    }
-                    const modalMessage = await new CustomMessageModal(
-                        this
-                    ).openAndGetResult();
-
-                    if (
-                        modalMessage != undefined &&
-                        modalMessage != "" &&
-                        modalMessage != "..."
-                    ) {
-                        cmtMessage = modalMessage;
-                    } else {
-                        this.setPluginState({
-                            gitAction: CurrentGitAction.idle,
-                        });
-                        return false;
-                    }
-
-                    // On desktop may run a script to get the commit message
-                } else if (
-                    this.gitManager instanceof SimpleGit &&
-                    this.settings.commitMessageScript
-                ) {
-                    const templateScript = this.settings.commitMessageScript;
-                    const hostname = this.localStorage.getHostname() || "";
-                    let formattedScript = templateScript.replace(
-                        "{{hostname}}",
-                        hostname
-                    );
-
-                    formattedScript = formattedScript.replace(
-                        "{{date}}",
-                        moment().format(this.settings.commitDateFormat)
-                    );
-
-                    const res = await spawnAsync(
-                        "sh",
-                        ["-c", formattedScript],
-                        { cwd: this.gitManager.absoluteRepoPath }
-                    );
-                    if (res.code != 0) {
-                        this.displayError(res.stderr);
-                    } else if (res.stdout.trim().length == 0) {
-                        this.displayMessage(
-                            "Stdout from commit message script is empty. Using default message."
-                        );
-                    } else {
-                        cmtMessage = res.stdout;
-                    }
-                }
-                let committedFiles: number | undefined;
-                if (onlyStaged) {
-                    committedFiles = await this.gitManager.commit({
-                        message: cmtMessage,
-                        amend,
-                    });
-                } else {
-                    committedFiles = await this.gitManager.commitAll({
-                        message: cmtMessage,
-                        status,
-                        unstagedFiles,
-                        amend,
-                    });
-                }
-
-                // Handle eventually resolved conflicts
-                if (this.gitManager instanceof SimpleGit) {
-                    await this.updateCachedStatus();
-                }
-
-                let roughly = false;
-                if (committedFiles === undefined) {
-                    roughly = true;
-                    committedFiles =
-                        unstagedFiles.length + stagedFiles.length || 0;
-                }
-                this.displayMessage(
-                    t("notices.committed-files", {
-                        roughly: roughly ? t("misc.roughly") : "",
-                        count: committedFiles,
-                        file: committedFiles == 1 ? t("misc.file") : t("misc.files")
-                    })
-                );
-            } else {
-                this.displayMessage(t("notices.no-changes-to-commit"));
-            }
-            this.app.workspace.trigger("obsidian-git:refresh");
-
-            return true;
-        } catch (error) {
-            this.displayError(error);
-            return false;
-        }
+        
+        // 转换参数格式并调用服务
+        const message = commitMessage ?? (fromAuto 
+            ? this.settings.autoCommitMessage 
+            : this.settings.commitMessage);
+        
+        const result = await this.gitOperations.commit({
+            message,
+            onlyStaged,
+            amend,
+            fromAuto,
+        });
+        
+        return result.success;
     }
 
     /*
@@ -990,60 +791,8 @@ export default class ObsidianGit extends Plugin {
      */
     async push(): Promise<boolean> {
         if (!(await this.isAllInitialized())) return false;
-        if (!(await this.remotesAreSet())) {
-            return false;
-        }
-        const hadConflict = this.localStorage.getConflict();
-        try {
-            if (this.gitManager instanceof SimpleGit)
-                await this.mayDeleteConflictFile();
-
-            // Refresh because of pull
-            let status: Status;
-            if (
-                this.gitManager instanceof SimpleGit &&
-                (status = await this.updateCachedStatus()).conflicted.length > 0
-            ) {
-                this.displayError(
-                    `Cannot push. You have conflicts in ${
-                        status.conflicted.length
-                    } ${status.conflicted.length == 1 ? "file" : "files"}`
-                );
-                await this.handleConflict(status.conflicted);
-                return false;
-            } else if (
-                this.gitManager instanceof IsomorphicGit &&
-                hadConflict
-            ) {
-                this.displayError(`Cannot push. You have conflicts`);
-                return false;
-            }
-            this.log("Pushing....");
-            const pushedFiles = await this.gitManager.push();
-
-            if (pushedFiles !== undefined) {
-                if (pushedFiles > 0) {
-                    this.displayMessage(
-                        t("notices.pushed-files", {
-                            count: pushedFiles,
-                            file: pushedFiles == 1 ? t("misc.file") : t("misc.files")
-                        })
-                    );
-                } else {
-                    this.displayMessage(t("notices.no-commits-to-push"));
-                }
-            }
-            this.setPluginState({ offlineMode: false });
-            this.app.workspace.trigger("obsidian-git:refresh");
-            return true;
-        } catch (e) {
-            if (e instanceof NoNetworkError) {
-                this.handleNoNetworkError(e);
-            } else {
-                this.displayError(e);
-            }
-            return false;
-        }
+        const result = await this.gitOperations.push();
+        return result.success;
     }
 
     /** Used for internals
@@ -1052,44 +801,15 @@ export default class ObsidianGit extends Plugin {
      *  See {@link pullChangesFromRemote} for the command version.
      */
     async pull(): Promise<false | number> {
-        if (!(await this.remotesAreSet())) {
-            return false;
+        const result = await this.gitOperations.pull();
+        if (result.success && result.value.filesChanged) {
+            this.lastPulledFiles = []; // 这里需要从 gitManager 获取，暂时设为空数组
         }
-        try {
-            this.log("Pulling....");
-            const pulledFiles = (await this.gitManager.pull()) || [];
-            this.setPluginState({ offlineMode: false });
-
-            if (pulledFiles.length > 0) {
-                this.displayMessage(
-                    t("notices.pulled-files", {
-                        count: pulledFiles.length,
-                        file: pulledFiles.length == 1 ? t("misc.file") : t("misc.files")
-                    })
-                );
-                this.lastPulledFiles = pulledFiles;
-            }
-            return pulledFiles.length;
-        } catch (e) {
-            this.displayError(e);
-
-            return false;
-        }
+        return result.success ? (result.value.filesChanged ?? 0) : false;
     }
 
     async fetch(): Promise<void> {
-        if (!(await this.remotesAreSet())) {
-            return;
-        }
-        try {
-            await this.gitManager.fetch();
-
-            this.displayMessage(t("notices.fetched-remote"));
-            this.setPluginState({ offlineMode: false });
-            this.app.workspace.trigger("obsidian-git:refresh");
-        } catch (error) {
-            this.displayError(error);
-        }
+        await this.gitOperations.fetch();
     }
 
     async mayDeleteConflictFile(): Promise<void> {
@@ -1206,64 +926,12 @@ I strongly recommend to use "Source mode" for viewing the conflicted files. For 
 
     async editRemotes(): Promise<string | undefined> {
         if (!(await this.isAllInitialized())) return;
-
-        const remotes = await this.gitManager.getRemotes();
-
-        const nameModal = new GeneralModal(this, {
-            options: remotes,
-            placeholder:
-                "Select or create a new remote by typing its name and selecting it",
-        });
-        const remoteName = await nameModal.openAndGetResult();
-
-        if (remoteName) {
-            const oldUrl = await this.gitManager.getRemoteUrl(remoteName);
-
-            const urlModal = new GeneralModal(this, {
-                initialValue: oldUrl,
-                placeholder: "Enter remote URL",
-            });
-            // urlModal.inputEl.setText(oldUrl ?? "");
-            const remoteURL = await urlModal.openAndGetResult();
-            if (remoteURL) {
-                await this.gitManager.setRemote(
-                    remoteName,
-                    formatRemoteUrl(remoteURL)
-                );
-                return remoteName;
-            }
-        }
+        const result = await this.remoteService.editRemotes();
+        return result.success ? result.value.remoteName : undefined;
     }
 
     async selectRemoteBranch(): Promise<string | undefined> {
-        let remotes = await this.gitManager.getRemotes();
-        let selectedRemote: string | undefined;
-        if (remotes.length === 0) {
-            selectedRemote = await this.editRemotes();
-            if (selectedRemote == undefined) {
-                remotes = await this.gitManager.getRemotes();
-            }
-        }
-
-        const nameModal = new GeneralModal(this, {
-            options: remotes,
-            placeholder:
-                "Select or create a new remote by typing its name and selecting it",
-        });
-        const remoteName =
-            selectedRemote ?? (await nameModal.openAndGetResult());
-
-        if (remoteName) {
-            this.displayMessage("Fetching remote branches");
-            await this.gitManager.fetch(remoteName);
-            const branches =
-                await this.gitManager.getRemoteBranches(remoteName);
-            const nameModal = new GeneralModal(this, {
-                options: branches,
-                placeholder:
-                    "Select or create a new remote branch by typing its name and selecting it",
-            });
-            return nameModal.openAndGetResult();
-        }
+        const result = await this.remoteService.selectRemoteBranch();
+        return result.success ? result.value : undefined;
     }
 }

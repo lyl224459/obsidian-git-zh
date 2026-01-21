@@ -305,7 +305,7 @@ export class SimpleGit extends GitManager {
         }
     }
 
-    unload(): void {
+    override unload(): void {
         this.watchAbortController?.abort();
     }
 

@@ -1,5 +1,5 @@
 import type { Editor, TFile } from "obsidian";
-import { Notice, Platform, requestUrl } from "obsidian";
+import { Notice } from "obsidian";
 import type { GitManager } from "./gitManager/gitManager";
 import { SimpleGit } from "./gitManager/simpleGit";
 

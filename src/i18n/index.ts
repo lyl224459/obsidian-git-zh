@@ -59,7 +59,7 @@ function interpolate(template: string, variables?: Record<string, string | numbe
  * @returns 翻译的文本或键本身（如果未找到翻译）
  */
 export function t(key: TranslationKey, variables?: Record<string, string | number>): string {
-    const translation = locales[currentLocale] || locales.en;
+    const translation = locales[currentLocale] || locales["en"];
     const value = getNestedValue(translation, key);
     
     if (value === undefined) {

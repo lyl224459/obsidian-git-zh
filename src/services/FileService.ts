@@ -3,7 +3,6 @@
  */
 
 import type { TFile } from "obsidian";
-import { t } from "../i18n";
 import { BaseService } from "./BaseService";
 import type { FileOperationOptions, Result, DiscardResultType } from "./types";
 import { DiscardModal } from "../ui/modals/discardModal";

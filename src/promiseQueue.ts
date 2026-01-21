@@ -27,15 +27,16 @@ export class PromiseQueue {
     private handleTask(): void {
         if (this.tasks.length > 0) {
             const item = this.tasks[0];
+            if (!item) return;
             item.task().then(
                 (res) => {
-                    item.onFinished(res);
+                    if (item) item.onFinished(res);
                     this.tasks.shift();
                     this.handleTask();
                 },
                 (e) => {
                     this.plugin.displayError(e);
-                    item.onFinished(undefined);
+                    if (item) item.onFinished(undefined);
                     this.tasks.shift();
                     this.handleTask();
                 }

@@ -402,7 +402,7 @@ export class GitOperationsService extends BaseService {
             let formattedScript = templateScript.replace("{{hostname}}", hostname);
             formattedScript = formattedScript.replace(
                 "{{date}}",
-                moment().format(this.plugin.settings.commitDateFormat)
+                window.moment().format(this.plugin.settings.commitDateFormat)
             );
 
             const res = await spawnAsync("sh", ["-c", formattedScript], {

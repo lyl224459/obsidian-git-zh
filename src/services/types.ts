@@ -2,8 +2,7 @@
  * Service layer types for better type safety
  */
 
-import type { TFile } from "obsidian";
-import type { FileStatusResult, Status } from "../types";
+import type { Status } from "../types";
 
 /**
  * Result type for operations that can fail

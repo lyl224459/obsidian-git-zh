@@ -1,4 +1,4 @@
-import { setIcon, moment } from "obsidian";
+import { setIcon } from "obsidian";
 import type ObsidianGit from "./main";
 import { CurrentGitAction } from "./types";
 
@@ -146,7 +146,7 @@ export class StatusBar {
         const timestamp = this.lastCommitTimestamp;
         const offlineMode = this.plugin.state.offlineMode;
         if (timestamp) {
-            const fromNow = moment(timestamp).fromNow();
+            const fromNow = window.moment(timestamp).fromNow();
             this.statusBarEl.ariaLabel = `${
                 offlineMode ? "Offline: " : ""
             }Last Commit: ${fromNow}`;

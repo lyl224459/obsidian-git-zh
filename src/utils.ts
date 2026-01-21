@@ -162,7 +162,7 @@ export function between(l: number, x: number, r: number) {
 export function splitRemoteBranch(
     remoteBranch: string
 ): readonly [string, string | undefined] {
-    const [remote, ...branch] = remoteBranch.split("/");
+    const [remote = "", ...branch] = remoteBranch.split("/");
     return [remote, branch.length === 0 ? undefined : branch.join("/")];
 }
 

@@ -842,7 +842,10 @@ export class SimpleGit extends GitManager {
         }
         const res = await this.git.log(opts);
 
-        return res.all.map<LogEntry>((e) => ({
+        return res.all.map<LogEntry>((e) => {
+            const diffFiles =
+                (e.diff?.files ?? []) as simple.DiffResultNameStatusFile[];
+            return {
             ...e,
             author: {
                 name: e.author_name,
@@ -851,25 +854,23 @@ export class SimpleGit extends GitManager {
             refs: e.refs.split(", ").filter((e) => e.length > 0),
             diff: {
                 ...e.diff!,
-                files:
-                    e.diff?.files.map<DiffFile>(
-                        (f: simple.DiffResultNameStatusFile) => ({
-                            ...f,
-                            status: f.status!,
-                            path: f.file,
-                            hash: e.hash,
-                            vaultPath: this.getRelativeVaultPath(f.file),
-                            fromPath: f.from,
-                            fromVaultPath:
-                                f.from != undefined
-                                    ? this.getRelativeVaultPath(f.from)
-                                    : undefined,
-                            binary: f.binary,
-                        })
-                    ) ?? [],
+                files: diffFiles.map<DiffFile>((f) => ({
+                    ...f,
+                    status: f.status!,
+                    path: f.file,
+                    hash: e.hash,
+                    vaultPath: this.getRelativeVaultPath(f.file),
+                    fromPath: f.from,
+                    fromVaultPath:
+                        f.from != undefined
+                            ? this.getRelativeVaultPath(f.from)
+                            : undefined,
+                    binary: f.binary,
+                })),
             },
             fileName: e.diff?.files.first()?.file,
-        }));
+        };
+        });
     }
 
     async show(

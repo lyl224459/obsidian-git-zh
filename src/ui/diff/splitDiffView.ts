@@ -293,6 +293,9 @@ export default class SplitDiffView extends ItemView {
             const index = contentEl.parentElement?.indexOf(contentEl);
 
             const chunk = chunks.chunks[index!];
+            if (!chunk) {
+                return;
+            }
 
             const rawHunk = rawHunkFromChunk(
                 chunk,
@@ -304,6 +307,9 @@ export default class SplitDiffView extends ItemView {
                 this.mergeView!.b.state.doc.toString(),
                 [rawHunk]
             )[0];
+            if (!hunk) {
+                return;
+            }
 
             const patch =
                 Hunks.createPatch(
@@ -373,6 +379,9 @@ export default class SplitDiffView extends ItemView {
             // cleanup
             this.mergeView?.destroy();
             const container = this.containerEl.children[1];
+            if (!container) {
+                return;
+            }
             container.empty();
 
             // new

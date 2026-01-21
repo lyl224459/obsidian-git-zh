@@ -73,7 +73,7 @@ export class GeneralModal extends SuggestModal<string> {
         });
     }
 
-    onClose() {
+    override onClose() {
         void new Promise((resolve) => setTimeout(resolve, 10)).then(() => {
             if (this.resolve) this.resolve(undefined);
         });

@@ -2,7 +2,7 @@
  * Service for Git operations (commit, push, pull, fetch)
  */
 
-import { Notice, moment } from "obsidian";
+import { Notice } from "obsidian";
 import { t } from "../i18n";
 import { SimpleGit } from "../gitManager/simpleGit";
 import { IsomorphicGit } from "../gitManager/isomorphicGit";

@@ -18,7 +18,13 @@ export class PromiseQueue {
         task: () => Promise<T>,
         onFinished?: (res: T | undefined) => void
     ): void {
-        this.tasks.push({ task, onFinished: onFinished ?? (() => {}) });
+        const wrappedTask = task as () => Promise<unknown>;
+        const wrappedFinished = (res: unknown) =>
+            onFinished?.(res as T | undefined);
+        this.tasks.push({
+            task: wrappedTask,
+            onFinished: wrappedFinished ?? (() => {}),
+        });
         if (this.tasks.length === 1) {
             this.handleTask();
         }

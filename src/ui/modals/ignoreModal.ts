@@ -3,7 +3,7 @@ import { Modal } from "obsidian";
 
 export class IgnoreModal extends Modal {
     resolve:
-        | ((value: string | PromiseLike<string> | undefined) => void)
+        | ((value: string | PromiseLike<string | undefined> | undefined) => void)
         | null = null;
     constructor(
         app: App,
@@ -12,7 +12,7 @@ export class IgnoreModal extends Modal {
         super(app);
     }
 
-    openAndGetReslt(): Promise<string> {
+    openAndGetReslt(): Promise<string | undefined> {
         return new Promise((resolve) => {
             this.resolve = resolve;
             this.open();

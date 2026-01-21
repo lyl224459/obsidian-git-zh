@@ -1,6 +1,5 @@
 import { GutterMarker } from "@codemirror/view";
 import { sha256 } from "js-sha256";
-import type { moment } from "obsidian";
 import { DATE_FORMAT, DATE_TIME_FORMAT_MINUTES } from "src/constants";
 import type {
     LineAuthorDateTimeFormatOptions,
@@ -37,6 +36,7 @@ const DIFFERING_AUTHOR_COMMITTER_MARKER = "*";
 
 const NON_WHITESPACE_REGEXP = /\S/g;
 const UNINTRUSIVE_CHARACTER_FOR_WAITING_RENDERING = "%";
+type Moment = ReturnType<typeof window.moment>;
 
 /**
  * A simple text gutter used to hold space until the real results are available.
@@ -240,7 +240,9 @@ export class LineAuthoringGutter extends GutterMarker {
         let rendered;
         switch (authorDisplay) {
             case "initials": // take every words first letter captitalized
-                rendered = words.map((word) => word[0].toUpperCase()).join("");
+                rendered = words
+                    .map((word) => word.charAt(0).toUpperCase())
+                    .join("");
                 break;
             case "first name":
                 rendered = words.first() ?? VALUE_NOT_FOUND_FALLBACK;
@@ -273,7 +275,7 @@ export class LineAuthoringGutter extends GutterMarker {
         if (nonZeroCommit?.author?.epochSeconds === undefined)
             return FALLBACK_COMMIT_DATE;
 
-        let dateTimeFormatting: string | ((time: moment.Moment) => string);
+        let dateTimeFormatting: string | ((time: Moment) => string);
 
         // adapt dateTimeFormatting based on the settings
         switch (dateTimeFormatOptions) {
@@ -298,7 +300,7 @@ export class LineAuthoringGutter extends GutterMarker {
                 return impossibleBranch(dateTimeFormatOptions);
         }
 
-        let authoringDate: moment.Moment = window.moment.unix(
+        let authoringDate: Moment = window.moment.unix(
             nonZeroCommit.author.epochSeconds
         );
 

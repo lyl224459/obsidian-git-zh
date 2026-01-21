@@ -14,24 +14,24 @@ export class BranchModal extends FuzzySuggestModal<string> {
         this.setPlaceholder("Select branch to checkout");
     }
 
-    getItems(): string[] {
+    override getItems(): string[] {
         return this.branches;
     }
-    getItemText(item: string): string {
+    override getItemText(item: string): string {
         return item;
     }
     override onChooseItem(item: string, _: MouseEvent | KeyboardEvent): void {
         this.resolve(item);
     }
 
-    openAndGetReslt(): Promise<string> {
+    openAndGetReslt(): Promise<string | undefined> {
         return new Promise((resolve) => {
             this.resolve = resolve;
             this.open();
         });
     }
 
-    onClose() {
+    override onClose() {
         //onClose gets called before onChooseItem
         void new Promise((resolve) => setTimeout(resolve, 10)).then(() => {
             if (this.resolve) this.resolve(undefined);

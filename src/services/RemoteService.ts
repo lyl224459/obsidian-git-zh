@@ -144,7 +144,7 @@ export class RemoteService extends BaseService {
             const remoteBranchResult = await this.selectRemoteBranch();
 
             if (!remoteBranchResult.success) {
-                this.displayError(t("notices.aborted-no-upstream"), 10000);
+                this.displayMessage(t("notices.aborted-no-upstream"));
                 return remoteBranchResult;
             }
 

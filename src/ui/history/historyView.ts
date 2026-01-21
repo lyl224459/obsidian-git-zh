@@ -16,19 +16,19 @@ export default class HistoryView extends ItemView implements HoverParent {
         this.hoverPopover = null;
     }
 
-    getViewType(): string {
+    override getViewType(): string {
         return HISTORY_VIEW_CONFIG.type;
     }
 
-    getDisplayText(): string {
+    override getDisplayText(): string {
         return HISTORY_VIEW_CONFIG.name;
     }
 
-    getIcon(): string {
+    override getIcon(): string {
         return HISTORY_VIEW_CONFIG.icon;
     }
 
-    onClose(): Promise<void> {
+    override onClose(): Promise<void> {
         if (this._view) {
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             unmount(this._view);
@@ -50,7 +50,7 @@ export default class HistoryView extends ItemView implements HoverParent {
         });
     }
 
-    onOpen(): Promise<void> {
+    override onOpen(): Promise<void> {
         this.reload();
         return super.onOpen();
     }

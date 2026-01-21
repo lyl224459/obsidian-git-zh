@@ -23,11 +23,11 @@ import { rawHunkFromChunk, rawHunksToHunks } from "src/editor/signs/diff";
 // This class is not extending `FileView', because it needs a `TFile`, which is not possible for dot files like `.gitignore`, which this editor should support as well.`
 export default class SplitDiffView extends ItemView {
     refreshing = false;
-    state: DiffViewState;
+    state!: DiffViewState;
     intervalRef: number;
     mergeView: MergeView | undefined;
     fileSaveDebouncer: Debouncer<[string], void>;
-    bIsEditable: boolean;
+    bIsEditable!: boolean;
 
     /**
      * Prevent to load text from file if the modification event was caused by this instance
@@ -122,11 +122,11 @@ export default class SplitDiffView extends ItemView {
         );
     }
 
-    getViewType(): string {
+    override getViewType(): string {
         return SPLIT_DIFF_VIEW_CONFIG.type;
     }
 
-    getDisplayText(): string {
+    override getDisplayText(): string {
         if (this.state?.bFile != null) {
             let fileName = this.state.bFile.split("/").last();
             if (fileName?.endsWith(".md")) fileName = fileName.slice(0, -3);
@@ -144,11 +144,11 @@ export default class SplitDiffView extends ItemView {
         return SPLIT_DIFF_VIEW_CONFIG.name;
     }
 
-    getIcon(): string {
+    override getIcon(): string {
         return SPLIT_DIFF_VIEW_CONFIG.icon;
     }
 
-    async setState(state: DiffViewState, _: ViewStateResult): Promise<void> {
+    override async setState(state: DiffViewState, _: ViewStateResult): Promise<void> {
         this.state = state;
 
         if (Platform.isMobile) {
@@ -160,16 +160,16 @@ export default class SplitDiffView extends ItemView {
         await this.createMergeView();
     }
 
-    getState(): Record<string, unknown> {
+    override getState(): Record<string, unknown> {
         return this.state as unknown as Record<string, unknown>;
     }
 
-    onClose(): Promise<void> {
+    override onClose(): Promise<void> {
         window.clearInterval(this.intervalRef);
         return super.onClose();
     }
 
-    async onOpen(): Promise<void> {
+    override async onOpen(): Promise<void> {
         await this.createMergeView();
         return super.onOpen();
     }

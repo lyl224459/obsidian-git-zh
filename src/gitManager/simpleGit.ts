@@ -85,12 +85,12 @@ export class SimpleGit extends GitManager {
             }
             for (const envVar of envVars) {
                 const [key, value] = envVar.split("=");
-                process.env[key] = value;
+                if (key) process.env[key] = value;
             }
 
             const SIMPLE_GIT_NAMESPACE = "simple-git";
             const NAMESPACE_SEPARATOR = ",";
-            const currentDebug = (localStorage.debug ?? "") as string;
+            const currentDebug = (localStorage["debug"] ?? "") as string;
             const namespaces = currentDebug.split(NAMESPACE_SEPARATOR);
 
             if (
@@ -309,7 +309,7 @@ export class SimpleGit extends GitManager {
         this.watchAbortController?.abort();
     }
 
-    async status(opts?: { path?: string }): Promise<Status> {
+    override async status(opts?: { path?: string }): Promise<Status> {
         const dir = opts?.path;
         this.plugin.setPluginState({ gitAction: CurrentGitAction.status });
         const status = await this.git.status(
@@ -383,6 +383,7 @@ export class SimpleGit extends GitManager {
                             if (submod != undefined) {
                                 return root + "/" + submod[1] + sep;
                             }
+                            return undefined;
                         })
                         .filter((i): i is string => !!i);
 
@@ -652,8 +653,7 @@ export class SimpleGit extends GitManager {
                         }
                     } catch (err) {
                         this.plugin.displayError(
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                            `Pull failed (${this.plugin.settings.syncMethod}): ${"message" in err ? err.message : err}`
+                            `Pull failed (${this.plugin.settings.syncMethod}): ${err instanceof Error ? err.message : String(err)}`
                         );
                         return;
                     }
@@ -667,8 +667,7 @@ export class SimpleGit extends GitManager {
                         await this.unstageAll({});
                     } catch (err) {
                         this.plugin.displayError(
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                            `Sync failed (${this.plugin.settings.syncMethod}): ${"message" in err ? err.message : err}`
+                            `Sync failed (${this.plugin.settings.syncMethod}): ${err instanceof Error ? err.message : String(err)}`
                         );
                     }
                 }
@@ -966,7 +965,8 @@ export class SimpleGit extends GitManager {
 
         const list = [];
         for (const item in res.branches) {
-            list.push(res.branches[item].name);
+            const branch = res.branches[item];
+            if (branch) list.push(branch.name);
         }
         return list;
     }
@@ -1038,7 +1038,8 @@ export class SimpleGit extends GitManager {
 
     async rawCommand(command: string): Promise<string> {
         const parts = command.split(" "); // Very simple parsing, may need string-argv
-        const res = await this.git.raw(parts[0], ...parts.slice(1));
+        const firstPart = parts[0] ?? "";
+        const res = await this.git.raw(firstPart, ...parts.slice(1));
         return res;
     }
 
@@ -1099,11 +1100,13 @@ export class SimpleGit extends GitManager {
             if (res != null && res.latest != null) {
                 return new Date(res.latest.date);
             }
+            return undefined;
         } catch (error) {
             if (error instanceof GitError) {
                 if (error.message.contains("does not have any commits yet")) {
                     return undefined;
                 }
+                throw error;
             } else {
                 throw error;
             }
@@ -1204,18 +1207,22 @@ function parseBlame(blameOutputUnnormalized: string): Blame {
 
     let line = 1;
     for (let bi = 0; bi < blameLines.length; ) {
-        if (startsWithNonWhitespace(blameLines[bi])) {
-            const lineInfo = blameLines[bi].split(" ");
+        const currentLine = blameLines[bi];
+        if (currentLine && startsWithNonWhitespace(currentLine)) {
+            const lineInfo = currentLine.split(" ");
 
             const commitHash = parseLineInfoInto(lineInfo, line, result);
             bi++;
 
             // parse header values until a tab is encountered
-            for (; startsWithNonWhitespace(blameLines[bi]); bi++) {
-                const spaceSeparatedHeaderValues = blameLines[bi].split(" ");
+            let nextLine = blameLines[bi];
+            for (; nextLine && startsWithNonWhitespace(nextLine); bi++) {
+                const spaceSeparatedHeaderValues = nextLine.split(" ");
                 parseHeaderInto(spaceSeparatedHeaderValues, result, line);
+                nextLine = blameLines[bi + 1];
             }
-            finalizeBlameCommitInfo(result.commits.get(commitHash)!);
+            const commit = result.commits.get(commitHash);
+            if (commit) finalizeBlameCommitInfo(commit);
 
             // skip tab prefixed line
             line += 1;
@@ -1232,14 +1239,14 @@ function parseBlame(blameOutputUnnormalized: string): Blame {
 }
 
 function parseLineInfoInto(lineInfo: string[], line: number, result: Blame) {
-    const hash = lineInfo[0];
+    const hash = lineInfo[0] ?? "";
     result.hashPerLine.push(hash);
-    result.originalFileLineNrPerLine.push(parseInt(lineInfo[1]));
-    result.finalFileLineNrPerLine.push(parseInt(lineInfo[2]));
+    result.originalFileLineNrPerLine.push(parseInt(lineInfo[1] ?? "0"));
+    result.finalFileLineNrPerLine.push(parseInt(lineInfo[2] ?? "0"));
     if (lineInfo.length >= 4)
-        result.groupSizePerStartingLine.set(line, parseInt(lineInfo[3]));
+        result.groupSizePerStartingLine.set(line, parseInt(lineInfo[3] ?? "0"));
 
-    if (parseInt(lineInfo[2]) !== line) {
+    if (parseInt(lineInfo[2] ?? "0") !== line) {
         throw Error(
             `git-blame output is out of order: ${line} vs ${lineInfo[2]}`
         );
@@ -1251,7 +1258,7 @@ function parseLineInfoInto(lineInfo: string[], line: number, result: Blame) {
 function parseHeaderInto(header: string[], out: Blame, line: number) {
     const key = header[0];
     const value = header.slice(1).join(" ");
-    const commitHash = out.hashPerLine[line];
+    const commitHash = out.hashPerLine[line] ?? "";
     const commit =
         out.commits.get(commitHash) ||
         <BlameCommit>{
@@ -1324,8 +1331,10 @@ function isUndefinedOrEmptyObject(obj: object | undefined | null): boolean {
     return !obj || Object.keys(obj).length === 0;
 }
 
-function startsWithNonWhitespace(str: string): boolean {
-    return str.length > 0 && str[0].trim() === str[0];
+function startsWithNonWhitespace(str: string | undefined): boolean {
+    if (!str) return false;
+    const firstChar = str[0];
+    return str.length > 0 && firstChar !== undefined && firstChar.trim() === firstChar;
 }
 
 function removeEmailBrackets(gitEmail: string) {

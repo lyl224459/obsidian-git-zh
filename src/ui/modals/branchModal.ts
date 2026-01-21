@@ -2,7 +2,7 @@ import { FuzzySuggestModal } from "obsidian";
 import type ObsidianGit from "src/main";
 
 export class BranchModal extends FuzzySuggestModal<string> {
-    resolve: (
+    resolve!: (
         value: string | undefined | PromiseLike<string | undefined>
     ) => void;
 
@@ -20,7 +20,7 @@ export class BranchModal extends FuzzySuggestModal<string> {
     getItemText(item: string): string {
         return item;
     }
-    onChooseItem(item: string, _: MouseEvent | KeyboardEvent): void {
+    override onChooseItem(item: string, _: MouseEvent | KeyboardEvent): void {
         this.resolve(item);
     }
 

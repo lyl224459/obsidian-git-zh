@@ -39,7 +39,7 @@ export class DiscardModal extends Modal {
         });
     }
 
-    onOpen() {
+    override onOpen() {
         const sum = this.deleteCount + this.discardCount;
         const { contentEl, titleEl } = this;
         let titlePart = "";
@@ -112,7 +112,7 @@ export class DiscardModal extends Modal {
         });
     }
 
-    onClose() {
+    override onClose() {
         const { contentEl } = this;
         contentEl.empty();
     }

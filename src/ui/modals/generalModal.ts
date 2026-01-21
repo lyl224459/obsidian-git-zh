@@ -28,7 +28,7 @@ const generalModalConfigDefaults: GeneralModalConfig = {
 };
 
 export class GeneralModal extends SuggestModal<string> {
-    resolve: (
+    resolve!: (
         value: string | undefined | PromiseLike<string | undefined>
     ) => void;
     config: GeneralModalConfig;
@@ -79,7 +79,7 @@ export class GeneralModal extends SuggestModal<string> {
         });
     }
 
-    getSuggestions(query: string): string[] {
+    override getSuggestions(query: string): string[] {
         if (this.config.onlySelection) {
             return this.config.options;
         } else if (this.config.allowEmpty) {
@@ -89,7 +89,7 @@ export class GeneralModal extends SuggestModal<string> {
         }
     }
 
-    renderSuggestion(value: string, el: HTMLElement): void {
+    override renderSuggestion(value: string, el: HTMLElement): void {
         if (this.config.obscure) {
             el.hide();
         } else {

@@ -26,17 +26,17 @@ export class CustomMessageModal extends SuggestModal<string> {
         });
     }
 
-    getSuggestions(query: string): string[] {
+    override getSuggestions(query: string): string[] {
         const date = moment().format(this.plugin.settings.commitDateFormat);
         if (query == "") query = "...";
         return [query, `${date}: ${query}`, `${query}: ${date}`];
     }
 
-    renderSuggestion(value: string, el: HTMLElement): void {
+    override renderSuggestion(value: string, el: HTMLElement): void {
         el.innerText = value;
     }
 
-    onChooseSuggestion(value: string, __: MouseEvent | KeyboardEvent) {
+    override onChooseSuggestion(value: string, __: MouseEvent | KeyboardEvent) {
         if (this.resolve) this.resolve(value);
     }
 }

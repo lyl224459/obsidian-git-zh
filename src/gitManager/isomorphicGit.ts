@@ -485,11 +485,11 @@ export class IsomorphicGit extends GitManager {
 
                                   const LINEBREAKS = /^.*(\r?\n|$)/gm;
                                   const ours =
-                                      ourContent.match(LINEBREAKS) ?? [];
+                                      (ourContent ?? "").match(LINEBREAKS) ?? [];
                                   const base =
-                                      baseContent.match(LINEBREAKS) ?? [];
+                                      (baseContent ?? "").match(LINEBREAKS) ?? [];
                                   const theirs =
-                                      theirContent.match(LINEBREAKS) ?? [];
+                                      (theirContent ?? "").match(LINEBREAKS) ?? [];
                                   const result = diff3Merge(ours, base, theirs);
                                   let mergedText = "";
                                   for (const item of result) {
@@ -865,7 +865,7 @@ export class IsomorphicGit extends GitManager {
                 const completeMessage = log.commit.message.split("\n\n");
 
                 return {
-                    message: completeMessage[0],
+                    message: completeMessage[0] ?? "",
                     author: {
                         name: log.commit.author.name,
                         email: log.commit.author.email,
@@ -1140,6 +1140,7 @@ export class IsomorphicGit extends GitManager {
                 });
                 return contents.blob;
             }
+            return undefined;
         };
         if (hash) {
             const commitContent = await readBlob({
@@ -1240,8 +1241,8 @@ export class IsomorphicGit extends GitManager {
         ] as string;
         // status will always be two characters
         return {
-            index: status[0] == "?" ? "U" : status[0],
-            workingDir: status[1] == "?" ? "U" : status[1],
+            index: status?.[0] == "?" ? "U" : (status?.[0] ?? "U"),
+            workingDir: status?.[1] == "?" ? "U" : (status?.[1] ?? "U"),
             path: row[this.FILE],
             vaultPath: this.getRelativeVaultPath(row[this.FILE]),
         };
@@ -1264,6 +1265,7 @@ export class IsomorphicGit extends GitManager {
                 infinity ? this.noticeLength : undefined
             );
         }
+        return undefined;
     }
 }
 
@@ -1273,6 +1275,7 @@ export class IsomorphicGit extends GitManager {
 // This will be easier with async generator functions.
 
 /*eslint-disable */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function fromValue(value: any) {
     let queue = [value];
     return {

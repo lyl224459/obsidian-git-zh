@@ -389,30 +389,30 @@
                 disabled={!status || (status.changed.length === 0 && status.staged.length === 0)}
             >
                 {#if !isSmallScreen}
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="svg-icon lucide-check"
-                        style="margin-right: 6px;"
-                    >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="svg-icon lucide-check"
+                    style="margin-right: 6px;"
+                >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
                 {/if}
                 {isSmallScreen ? '提交' : t("commands.commit")}
             </button>
             {#if !isSmallScreen || deviceType === 'tablet'}
-                <button
+            <button
                     class="mod-cta commit-btn {isSmallScreen ? 'commit-btn-mobile' : ''}"
-                    onclick={commitAndSync}
-                    disabled={!status || (status.changed.length === 0 && status.staged.length === 0)}
-                >
+                onclick={commitAndSync}
+                disabled={!status || (status.changed.length === 0 && status.staged.length === 0)}
+            >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"

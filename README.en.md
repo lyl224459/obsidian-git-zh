@@ -4,7 +4,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/lyl224459/obsidian-git-zh)](https://github.com/lyl224459/obsidian-git-zh/issues)
 [![GitHub license](https://img.shields.io/github/license/lyl224459/obsidian-git-zh)](https://github.com/lyl224459/obsidian-git-zh/blob/master/LICENSE)
 
-> Git version control integration - Automatic backup and advanced features (Full Chinese interface)
+> Git version control integration - Automatic backup and advanced features (Full Chinese localization)
 
 [English](README.en.md) | [简体中文](README.md) | [English (Original)](https://github.com/Vinzent03/obsidian-git/blob/master/README.md)
 

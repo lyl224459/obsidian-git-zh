@@ -191,6 +191,13 @@ export class SimpleGit extends GitManager {
 
         await this.addAskPassScriptToExclude();
 
+        // Ensure the plugin config directory exists
+        try {
+            await fsPromises.access(this.absPluginConfigPath);
+        } catch {
+            await fsPromises.mkdir(this.absPluginConfigPath, { recursive: true });
+        }
+
         await fsPromises.writeFile(
             path.join(this.absPluginConfigPath, ASK_PASS_SCRIPT_FILE),
             ASK_PASS_SCRIPT

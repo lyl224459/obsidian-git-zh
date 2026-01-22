@@ -452,9 +452,11 @@ export default {
         },
         "author-name": {
             name: "提交的作者姓名",
+            desc: "设置提交时使用的作者姓名",
         },
         "author-email": {
             name: "提交的作者电子邮件",
+            desc: "设置提交时使用的作者电子邮件地址",
         },
         "update-submodules": {
             name: "更新子模块",
@@ -495,10 +497,6 @@ export default {
         },
         "advanced-desc": "这些设置通常不需要更改，但可能对于特殊设置是必需的。",
         "restart-notice": "必须重新启动 Obsidian 才能使更改生效。",
-        donate: {
-            name: "捐赠",
-            desc: "如果您喜欢这个插件，请考虑捐赠以支持持续开发。",
-        },
         "copy-debug-info": {
             button: "复制调试信息",
         },
@@ -506,6 +504,7 @@ export default {
             name: "调试信息",
             desc: "调试和日志记录：您可以随时通过打开控制台查看此插件和其他所有插件的日志",
             text: "调试和日志记录：\n您可以随时通过打开控制台查看此插件和其他所有插件的日志",
+            button: "复制调试信息",
         },
         "quick-actions": {
             "open-source-control": {
@@ -530,6 +529,37 @@ export default {
             auto: "⚡ 自动同步功能可以在后台运行，无需手动操作",
             history: "🔄 定期查看历史记录，了解代码变更情况",
             debug: "🛠️ 如遇到问题，可以使用调试信息按钮获取详细信息",
+        },
+        "mobile-optimization": {
+            heading: "📱 移动端优化",
+            "enable-optimization": {
+                name: "启用移动端优化",
+                desc: "自动检测设备性能并应用优化设置",
+            },
+            "history-count": {
+                name: "移动端历史记录数量",
+                desc: "移动端显示的历史记录最大数量",
+            },
+            "detect-performance": {
+                name: "检测设备性能",
+                desc: "重新检测设备性能并调整优化设置",
+                button: "检测性能",
+            },
+            "performance-stats": {
+                name: "查看{{deviceName}}端性能统计",
+                desc: "显示{{deviceName}}端性能监控数据",
+                button: "查看统计",
+            },
+            "tablet-multitask": {
+                name: "平板多任务优化",
+                desc: "启用平板设备的多任务和分屏优化",
+            },
+            "notices": {
+                "optimization-enabled": "📱 移动端优化已启用，将在下次启动时生效",
+                "performance-detected": "✅ 性能检测完成，已应用相应优化",
+                "multitask-enabled": "📱 平板多任务已启用",
+                "multitask-disabled": "📱 平板多任务已禁用",
+            },
         },
         "action-failed": "操作执行失败，请检查Git状态",
         "device-indicator": {

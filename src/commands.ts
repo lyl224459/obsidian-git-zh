@@ -91,8 +91,12 @@ export function addCommmands(plugin: ObsidianGit) {
             if (checking) {
                 return file !== null;
             }
+            if (!file) {
+                plugin.displayError(new Error("No active file to show diff for"));
+                return false;
+            }
             const filePath = plugin.gitManager.getRelativeRepoPath(
-                file!.path,
+                file.path,
                 true
             );
             plugin.tools.openDiff({

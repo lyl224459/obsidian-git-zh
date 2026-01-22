@@ -53,6 +53,12 @@
 
     // 获取分支信息
     async function updateBranchInfo() {
+        if (!plugin.gitReady || !plugin.gitManager) {
+            currentBranch = "";
+            unPushedCommits = 0;
+            return;
+        }
+
         try {
             const branchInfo = await plugin.gitManager.branchInfo();
             currentBranch = branchInfo.current || "";
@@ -60,6 +66,8 @@
             unPushedCommits = canPush ? 1 : 0;
         } catch (e) {
             console.error("Failed to get branch info:", e);
+            currentBranch = "";
+            unPushedCommits = 0;
         }
     }
     

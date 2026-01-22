@@ -12,11 +12,16 @@ export class BranchStatusBar {
     }
 
     async display() {
-        if (this.plugin.gitReady) {
-            const branchInfo = await this.plugin.gitManager.branchInfo();
-            if (branchInfo.current != undefined) {
-                this.statusBarEl.setText(branchInfo.current);
-            } else {
+        if (this.plugin.gitReady && this.plugin.gitManager) {
+            try {
+                const branchInfo = await this.plugin.gitManager.branchInfo();
+                if (branchInfo.current != undefined) {
+                    this.statusBarEl.setText(branchInfo.current);
+                } else {
+                    this.statusBarEl.empty();
+                }
+            } catch (error) {
+                this.plugin.displayError(error);
                 this.statusBarEl.empty();
             }
         } else {

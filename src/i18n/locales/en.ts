@@ -452,9 +452,11 @@ export default {
         },
         "author-name": {
             name: "Author name for commit",
+            desc: "Set the author name to use for commits",
         },
         "author-email": {
             name: "Author email for commit",
+            desc: "Set the author email address to use for commits",
         },
         "update-submodules": {
             name: "Update submodules",
@@ -495,10 +497,6 @@ export default {
         },
         "advanced-desc": "These settings usually don't need to be changed, but may be required for special setups.",
         "restart-notice": "Obsidian must be restarted for the changes to take affect.",
-        donate: {
-            name: "Donate",
-            desc: "If you like this Plugin, consider donating to support continued development.",
-        },
         "copy-debug-info": {
             button: "Copy Debug Information",
         },
@@ -506,6 +504,7 @@ export default {
             name: "Debug Information",
             desc: "Debugging and logging: You can always see the logs of this and every other plugin by opening the console",
             text: "Debugging and logging:\nYou can always see the logs of this and every other plugin by opening the console with",
+            button: "Copy debug info",
         },
         "quick-actions": {
             "open-source-control": {
@@ -530,6 +529,37 @@ export default {
             auto: "⚡ Auto-sync runs in the background, no manual operation needed",
             history: "🔄 Regularly check history to understand code changes",
             debug: "🛠️ If you encounter issues, use the debug info button for details",
+        },
+        "mobile-optimization": {
+            heading: "📱 Mobile Optimization",
+            "enable-optimization": {
+                name: "Enable Mobile Optimization",
+                desc: "Automatically detect device performance and apply optimization settings",
+            },
+            "history-count": {
+                name: "Mobile History Count",
+                desc: "Maximum number of history records displayed on mobile",
+            },
+            "detect-performance": {
+                name: "Detect Device Performance",
+                desc: "Re-detect device performance and adjust optimization settings",
+                button: "Detect Performance",
+            },
+            "performance-stats": {
+                name: "View {{deviceName}} Performance Stats",
+                desc: "Display {{deviceName}} performance monitoring data",
+                button: "View Stats",
+            },
+            "tablet-multitask": {
+                name: "Tablet Multitask Optimization",
+                desc: "Enable multitask and split-screen optimization for tablet devices",
+            },
+            "notices": {
+                "optimization-enabled": "📱 Mobile optimization enabled, will take effect on next startup",
+                "performance-detected": "✅ Performance detection completed, optimizations applied",
+                "multitask-enabled": "📱 Tablet multitask enabled",
+                "multitask-disabled": "📱 Tablet multitask disabled",
+            },
         },
         "action-failed": "Action failed, please check Git status",
         "device-indicator": {

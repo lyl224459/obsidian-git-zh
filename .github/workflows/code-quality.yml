@@ -247,9 +247,9 @@ jobs:
           echo "### 📊 质量评分: ${PERCENTAGE}%" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ $PERCENTAGE -ge 80 ]; then
+          if [ "$PERCENTAGE" -ge 80 ]; then
             echo "✅ **代码质量良好** 🎉" >> $GITHUB_STEP_SUMMARY
-          elif [ $PERCENTAGE -ge 60 ]; then
+          elif [ "$PERCENTAGE" -ge 60 ]; then
             echo "⚠️ **代码质量一般，需要改进**" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **代码质量需要重点关注**" >> $GITHUB_STEP_SUMMARY

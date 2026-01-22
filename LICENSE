@@ -1,6 +1,30 @@
 MIT License
 
 Copyright (c) 2020 Vinzent03, Denis Olehov
+Copyright (c) 2024 lyl224459 (Chinese localization)
+
+===============================================================================
+
+Obsidian Git Chinese Version License Information
+
+This project is a Chinese localization fork of the original Obsidian Git plugin
+(https://github.com/Vinzent03/obsidian-git).
+
+Original Work:
+- Original Author: Vinzent03 (https://github.com/Vinzent03)
+- Contributor: Denis Olehov
+- License: MIT License
+- Copyright Year: 2020
+
+Chinese Localization Version:
+- Chinese Localization: lyl224459 (https://github.com/lyl224459)
+- Localization Content: Complete Chinese interface translation (220+ translation keys)
+- Localization Year: 2024
+- License: MIT License (inherited from original license)
+
+===============================================================================
+
+MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +43,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+===============================================================================
+
+Usage Notes:
+- This project is fully open source under MIT License
+- You are free to use, modify, and distribute this project
+- You must retain the original copyright notice and license text when distributing
+- This project assumes no responsibility for any issues arising from use
+
+Contributions:
+- Issues and Pull Requests are welcome
+- For Chinese localization issues, contact: lyl224459
+- For technical issues, refer to the original repository: https://github.com/Vinzent03/obsidian-git
+
+===============================================================================

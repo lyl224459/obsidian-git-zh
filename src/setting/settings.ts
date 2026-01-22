@@ -56,29 +56,35 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     private addDeviceIndicator(containerEl: Element, deviceType: string): void {
         const indicator = containerEl.createDiv("git-device-indicator");
 
-        let deviceIcon = "💻";
-        let deviceText = "桌面设备";
-        let deviceDesc = "完整功能支持";
-
-        switch (deviceType) {
-            case 'tablet':
-                deviceIcon = "📱";
-                deviceText = "平板设备";
-                deviceDesc = "优化多任务体验";
-                break;
-            case 'mobile':
-                deviceIcon = "📱";
-                deviceText = "移动设备";
-                deviceDesc = "精简界面设计";
-                break;
-        }
+        const deviceInfo = (() => {
+            switch (deviceType) {
+                case 'tablet':
+                    return {
+                        icon: t("settings.device-indicator.tablet.icon"),
+                        text: t("settings.device-indicator.tablet.text"),
+                        desc: t("settings.device-indicator.tablet.desc"),
+                    };
+                case 'mobile':
+                    return {
+                        icon: t("settings.device-indicator.mobile.icon"),
+                        text: t("settings.device-indicator.mobile.text"),
+                        desc: t("settings.device-indicator.mobile.desc"),
+                    };
+                default:
+                    return {
+                        icon: t("settings.device-indicator.desktop.icon"),
+                        text: t("settings.device-indicator.desktop.text"),
+                        desc: t("settings.device-indicator.desktop.desc"),
+                    };
+            }
+        })();
 
         indicator.innerHTML = `
             <div style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--background-secondary); border-radius: 8px; margin-bottom: 20px;">
-                <span style="font-size: 20px;">${deviceIcon}</span>
+                <span style="font-size: 20px;">${deviceInfo.icon}</span>
                 <div>
-                    <div style="font-weight: bold; color: var(--text-normal);">${deviceText}</div>
-                    <div style="font-size: 12px; color: var(--text-muted);">${deviceDesc}</div>
+                    <div style="font-weight: bold; color: var(--text-normal);">${deviceInfo.text}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">${deviceInfo.desc}</div>
                 </div>
             </div>
         `;
@@ -233,7 +239,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
 
         // 语言设置 - 始终显示
         const languageSection = containerEl.createDiv("git-settings-section");
-        languageSection.createEl("h3", { text: "🌐 基本设置", attr: { style: "margin-bottom: 1em; color: var(--text-accent);" } });
+        languageSection.createEl("h3", { text: t("settings.heading.basic-settings"), attr: { style: "margin-bottom: 1em; color: var(--text-accent);" } });
 
         new Setting(languageSection)
             .setName(t("settings.language.name"))
@@ -264,7 +270,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         
         if (!gitReady) {
             const gitNotReadySection = containerEl.createDiv("git-settings-section");
-            gitNotReadySection.createEl("h3", { text: "⚠️ Git 状态", attr: { style: "margin-bottom: 1em; color: var(--text-warning);" } });
+            gitNotReadySection.createEl("h3", { text: t("settings.heading.git-status"), attr: { style: "margin-bottom: 1em; color: var(--text-warning);" } });
 
             gitNotReadySection.createEl("p", {
                 text: t("settings.git-not-ready.text"),
@@ -288,7 +294,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     ): void {
         const section = containerEl.createDiv("git-settings-section");
         section.createEl("h3", {
-            text: "🔄 自动化设置",
+            text: t("settings.heading.automation-settings"),
             attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
         });
 
@@ -420,7 +426,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     private createCommitSection(containerEl: Element, plugin: ObsidianGit): void {
         const section = containerEl.createDiv("git-settings-section");
         section.createEl("h3", {
-            text: "💾 提交设置",
+            text: t("settings.heading.commit-settings"),
             attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
         });
 
@@ -474,7 +480,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     ): void {
         const section = containerEl.createDiv("git-settings-section");
         section.createEl("h3", {
-            text: "👁️ 视图设置",
+            text: t("settings.heading.view-settings"),
             attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
         });
 
@@ -561,7 +567,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     ): void {
         const section = containerEl.createDiv("git-settings-section");
         section.createEl("h3", {
-            text: "⚙️ 高级设置",
+            text: t("settings.heading.advanced"),
             attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
         });
 
@@ -610,7 +616,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         // 调试信息
         const debugSection = containerEl.createDiv("git-settings-section");
         debugSection.createEl("h3", {
-            text: "🐛 调试信息",
+            text: t("settings.heading.debug-info"),
             attr: { style: "margin-bottom: 1em; color: var(--text-warning);" }
         });
 
@@ -1651,7 +1657,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     ): void {
         const guideSection = containerEl.createDiv("git-settings-section git-guide-section");
         guideSection.createEl("h3", {
-            text: "🚀 快速入门指南",
+            text: t("settings.heading.quick-start-guide"),
             attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
         });
 
@@ -1661,26 +1667,26 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         const actions = [
             {
                 icon: "📁",
-                title: "打开源代码管理",
-                desc: "查看文件变更和提交",
+                title: t("settings.quick-actions.open-source-control.title"),
+                desc: t("settings.quick-actions.open-source-control.desc"),
                 action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-source-control-view")
             },
             {
                 icon: "📜",
-                title: "打开历史记录",
-                desc: "浏览提交历史",
+                title: t("settings.quick-actions.open-history.title"),
+                desc: t("settings.quick-actions.open-history.desc"),
                 action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-history-view")
             },
             {
                 icon: "🔍",
-                title: "打开差异视图",
-                desc: "查看文件差异",
+                title: t("settings.quick-actions.open-diff.title"),
+                desc: t("settings.quick-actions.open-diff.desc"),
                 action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-diff-view")
             },
             {
                 icon: "⚡",
-                title: "立即提交",
-                desc: "提交当前变更",
+                title: t("settings.quick-actions.commit-now.title"),
+                desc: t("settings.quick-actions.commit-now.desc"),
                 action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:commit")
             }
         ];
@@ -1705,7 +1711,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                     action.action();
                 } catch (e) {
                     console.error("Failed to execute action:", e);
-                    new Notice("操作执行失败，请检查Git状态", 3000);
+                    new Notice(t("settings.action-failed"), 3000);
                 }
             });
 
@@ -1724,15 +1730,15 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         // 使用提示
         const tipsSection = guideSection.createDiv("git-tips-section");
         tipsSection.createEl("h4", {
-            text: "💡 使用提示",
+            text: t("settings.heading.usage-tips"),
             attr: { style: "margin: 1.5em 0 0.5em 0; color: var(--text-normal);" }
         });
 
         const tips = [
-            "📱 移动端建议使用分批提交，避免一次性提交过多文件",
-            "⚡ 自动同步功能可以在后台运行，无需手动操作",
-            "🔄 定期查看历史记录，了解代码变更情况",
-            "🛠️ 如遇到问题，可以使用调试信息按钮获取详细信息"
+            t("settings.usage-tips.mobile"),
+            t("settings.usage-tips.auto"),
+            t("settings.usage-tips.history"),
+            t("settings.usage-tips.debug")
         ];
 
         const tipsList = tipsSection.createEl("ul", {

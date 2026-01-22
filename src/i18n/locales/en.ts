@@ -168,6 +168,14 @@ export default {
             authentication: "Authentication/commit author",
             advanced: "Advanced",
             support: "Support",
+            "basic-settings": "🌐 Basic Settings",
+            "git-status": "⚠️ Git Status",
+            "automation-settings": "🔄 Automation Settings",
+            "commit-settings": "💾 Commit Settings",
+            "view-settings": "👁️ View Settings",
+            "debug-info": "🐛 Debug Info",
+            "quick-start-guide": "🚀 Quick Start Guide",
+            "usage-tips": "💡 Usage Tips",
         },
         "git-not-ready": {
             text: "Git is not ready. When all settings are correct you can configure commit-sync, etc.",
@@ -253,6 +261,10 @@ export default {
         },
         "pull-on-startup": {
             name: "Pull on startup",
+            desc: "Automatically pull commits when Obsidian starts.",
+        },
+        "auto-pull-on-boot": {
+            name: "Auto pull on boot",
             desc: "Automatically pull commits when Obsidian starts.",
         },
         "push-on-commit-and-sync": {
@@ -397,6 +409,13 @@ export default {
                 git_unified: "Unified",
             },
         },
+        "diff-style": {
+            name: "Diff style",
+            desc: "Set the style for the diff view.",
+            unified: "Unified",
+            split: "Split",
+        },
+        "commit-and-sync-desc": "Configure detailed settings for commit-and-sync operations.",
         "disable-popups": {
             name: "Disable informative notifications",
             desc: "Disable informative notifications for git operations to minimize distraction (refer to status bar for updates).",
@@ -485,6 +504,48 @@ export default {
         },
         "debugging-info": {
             text: "Debugging and logging:\nYou can always see the logs of this and every other plugin by opening the console with",
+        },
+        "quick-actions": {
+            "open-source-control": {
+                title: "Open Source Control",
+                desc: "View file changes and commits",
+            },
+            "open-history": {
+                title: "Open History",
+                desc: "Browse commit history",
+            },
+            "open-diff": {
+                title: "Open Diff View",
+                desc: "View file differences",
+            },
+            "commit-now": {
+                title: "Commit Now",
+                desc: "Commit current changes",
+            },
+        },
+        "usage-tips": {
+            mobile: "📱 On mobile, use batch commits to avoid committing too many files at once",
+            auto: "⚡ Auto-sync runs in the background, no manual operation needed",
+            history: "🔄 Regularly check history to understand code changes",
+            debug: "🛠️ If you encounter issues, use the debug info button for details",
+        },
+        "action-failed": "Action failed, please check Git status",
+        "device-indicator": {
+            desktop: {
+                icon: "💻",
+                text: "Desktop Device",
+                desc: "Full feature support",
+            },
+            tablet: {
+                icon: "📱",
+                text: "Tablet Device",
+                desc: "Optimized multitasking",
+            },
+            mobile: {
+                icon: "📱",
+                text: "Mobile Device",
+                desc: "Streamlined interface",
+            },
         },
     },
 

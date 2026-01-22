@@ -94,6 +94,32 @@ pnpm run package:all
 pnpm run pre-release
 ```
 
+### 🤖 GitHub Actions 自动化
+
+本项目使用 GitHub Actions 实现完整的 CI/CD 流程：
+
+#### 🚀 自动构建 (push 到 master)
+- 代码质量检查（ESLint、Prettier、TypeScript、Svelte）
+- 自动构建和测试
+- 生成发布包
+- 发布最新开发版本
+
+#### 📦 自动发布 (创建版本标签)
+- 完整的发布前验证
+- 生成标准化的发布包
+- 自动创建 GitHub Release
+- 详细的发布说明和安装指南
+
+#### 🔍 定期代码质量检查
+- 每周代码质量分析
+- 依赖安全扫描
+- 构建验证
+- 详细的质量报告
+
+#### 📊 工作流状态
+[![构建状态](https://img.shields.io/github/actions/workflow/status/lyl224459/obsidian-git-zh/ci.yml)](https://github.com/lyl224459/obsidian-git-zh/actions)
+[![代码质量](https://img.shields.io/github/actions/workflow/status/lyl224459/obsidian-git-zh/code-quality.yml)](https://github.com/lyl224459/obsidian-git-zh/actions)
+
 ## 📚 功能特性
 
 ### 🔄 自动同步

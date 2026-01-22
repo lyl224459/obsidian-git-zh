@@ -1,9 +1,11 @@
 # ===================================
-# Obsidian Git 插件 - .gitignore
+# Obsidian Git 中文版 - .gitignore
 # ===================================
+# Git 版本控制集成插件 - 中文本地化版本
+# https://github.com/lyl224459/obsidian-git-zh
 
 # ===================================
-# Node.js / npm / pnpm / yarn
+# Node.js / 包管理器
 # ===================================
 node_modules/
 npm-debug.log*
@@ -11,25 +13,35 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# 包管理器锁文件（保留 pnpm-lock.yaml 用于版本锁定）
 yarn.lock
 package-lock.json
+# 注意：pnpm-lock.yaml 被保留用于依赖版本控制
 
 # ===================================
-# 构建输出
+# 构建输出和发布包
 # ===================================
 # 开发模式输出（根目录）
 /main.js
 /*.js.map
 
-# 生产构建输出（dist 目录）
+# 生产构建输出
 dist/
 build/
 out/
 .cache/
 
-# 打包文件
+# 发布包（根目录的发布包，保留dist目录下的）
 *.zip
+*.tar.gz
 !dist/*.zip
+!dist/*.tar.gz
+
+# 构建产物
+obsidian-git-zh-*.zip
+git-zh.zip
+git-zh.tar.gz
 
 # ===================================
 # TypeScript
@@ -37,6 +49,13 @@ out/
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 .tsbuildinfo
+
+# ===================================
+# GitHub Actions
+# ===================================
+# Actions 运行时文件
+.github/actions/
+.github/workflows/*.yml.bak
 
 # ===================================
 # IDE 和编辑器
@@ -118,6 +137,24 @@ test-results/
 .prettierignore
 
 # ===================================
+# 现代开发工具
+# ===================================
+# ESLint 缓存
+.eslintcache
+
+# Prettier 缓存
+.prettiercache
+
+# Stylelint 缓存
+.stylelintcache
+
+# Husky (Git hooks)
+.husky/_
+
+# Changesets
+.changeset/
+
+# ===================================
 # 其他
 # ===================================
 # 备份文件
@@ -125,11 +162,10 @@ test-results/
 *.backup
 *.old
 
-# 压缩文件（如果用于开发）
-*.zip
-*.tar
-*.tar.gz
+# 其他压缩文件（如果用于开发）
+*.7z
 *.rar
+*.iso
 
 # 锁文件（pnpm-lock.yaml 保留用于依赖版本控制）
 # pnpm-lock.yaml 不应该被忽略
@@ -149,18 +185,19 @@ test-vault/
 .git-credentials
 credentials.json
 
-# 本地报告和部署脚本（不提交到仓库）
-发布说明.md
-提交说明.md
-快速部署指南.md
-汉化项目总结.md
-README_STATUS.md
-如何推送.txt
-最终状态报告.md
-推送指南.txt
-push-to-github.bat
-安装到Obsidian.bat
+# 本地开发文档和脚本（不提交到仓库）
+*_STATUS.md
+*说明.md
+*指南.md
+*报告.md
+*.txt
 *.bat
+*.ps1
+
+# 本地测试和调试文件
+test-results/
+debug.log
+*.log
 
 # ===================================
 # 注释说明

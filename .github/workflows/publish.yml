@@ -60,6 +60,7 @@ jobs:
           mv git-zh.zip "${PLUGIN_NAME}-${VERSION}.zip"
 
           echo "✅ 发布包生成完成: ${PLUGIN_NAME}-${VERSION}.zip"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: 📊 验证发布包
         run: |
@@ -68,20 +69,20 @@ jobs:
 
           echo ""
           echo "📁 检查发布包内容:"
-          unzip -l "${PLUGIN_NAME}-${{ github.event.inputs.version || github.ref_name }}.zip" | head -20
+          unzip -l "${PLUGIN_NAME}-${VERSION}.zip" | head -20
 
           echo ""
           echo "📏 验证插件文件夹结构:"
-          unzip -l "${PLUGIN_NAME}-${{ github.event.inputs.version || github.ref_name }}.zip" | grep "${PLUGIN_ID}/" || exit 1
+          unzip -l "${PLUGIN_NAME}-${VERSION}.zip" | grep "${PLUGIN_ID}/" || exit 1
           echo "✅ 发布包结构验证通过"
 
       - name: 🚀 创建 GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref }}
-          name: 🌟 Obsidian Git 中文版 ${{ github.event.inputs.version || github.ref_name }}
+          name: 🌟 Obsidian Git 中文版 ${VERSION}
           body: |
-            ## 🌟 Obsidian Git 中文版 ${{ github.event.inputs.version || github.ref_name }}
+            ## 🌟 Obsidian Git 中文版 ${VERSION}
 
             ### ✨ 主要特性
             - 🇨🇳 **完整中文界面** - 所有命令、设置、通知均已翻译 (220+ 翻译键)
@@ -95,7 +96,7 @@ jobs:
             ### 📦 安装方法
 
             **推荐方式：一键安装**
-            1. 下载 `${{ env.PLUGIN_NAME }}-${{ github.event.inputs.version || github.ref_name }}.zip`
+            1. 下载 `${{ env.PLUGIN_NAME }}-${VERSION}.zip`
             2. 解压到您的 Obsidian 插件目录：
                - Windows: `%APPDATA%\\Obsidian\\Plugins\\`
                - macOS: `~/Library/Application Support/obsidian/Plugins/`
@@ -104,7 +105,7 @@ jobs:
 
             ### 📋 插件信息
             - **插件ID**: `${{ env.PLUGIN_ID }}`
-            - **版本**: ${{ github.event.inputs.version || github.ref_name }}
+            - **版本**: ${VERSION}
             - **基于原版**: v2.36.1
             - **最低Obsidian版本**: 0.15.0
             - **构建日期**: ${{ github.event.head_commit.timestamp }}
@@ -112,7 +113,7 @@ jobs:
             ### 📊 文件校验
             ```bash
             # 验证文件完整性
-            unzip -l ${{ env.PLUGIN_NAME }}-${{ github.event.inputs.version || github.ref_name }}.zip
+            unzip -l ${{ env.PLUGIN_NAME }}-${VERSION}.zip
             ```
 
             ### 🔗 相关链接
@@ -127,7 +128,7 @@ jobs:
             **🐛 发现问题？[提交 Issue](${{ github.server_url }}/${{ github.repository }}/issues)**
           draft: false
           prerelease: false
-          files: ${{ env.PLUGIN_NAME }}-${{ github.event.inputs.version || github.ref_name }}.zip
+          files: ${{ env.PLUGIN_NAME }}-${VERSION}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -136,9 +137,9 @@ jobs:
           echo "## 🎉 发布成功！" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 发布信息" >> $GITHUB_STEP_SUMMARY
-          echo "- **版本**: ${{ github.event.inputs.version || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **版本**: ${VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **发布时间**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "- **发布包**: ${{ env.PLUGIN_NAME }}-${{ github.event.inputs.version || github.ref_name }}.zip" >> $GITHUB_STEP_SUMMARY
+          echo "- **发布包**: ${{ env.PLUGIN_NAME }}-${VERSION}.zip" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 下载链接" >> $GITHUB_STEP_SUMMARY
           echo "- [GitHub Releases](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref }})" >> $GITHUB_STEP_SUMMARY

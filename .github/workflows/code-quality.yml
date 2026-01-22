@@ -214,33 +214,27 @@ jobs:
     steps:
       - name: 📋 生成质量报告
         run: |
-          # 获取各任务状态
-          ANALYZE_RESULT="${{ needs.analyze.result }}"
-          LINT_RESULT="${{ needs.lint.result }}"
-          BUILD_CHECK_RESULT="${{ needs.build-check.result }}"
-          SECURITY_RESULT="${{ needs.security.result }}"
-          DEPENDENCIES_RESULT="${{ needs.dependencies.result }}"
-
           echo "## 🔍 代码质量检查报告" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| 检查项目 | 状态 | 详情 |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 📊 代码分析 | $ANALYZE_RESULT | [查看详情](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/report) |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔍 静态分析 | $LINT_RESULT | ESLint + Prettier + TypeScript + Svelte |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 构建验证 | $BUILD_CHECK_RESULT | 构建 + 打包测试 |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔒 安全检查 | $SECURITY_RESULT | Trivy 漏洞扫描 |" >> $GITHUB_STEP_SUMMARY
-          echo "| 📈 依赖分析 | $DEPENDENCIES_RESULT | 依赖更新检查 |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📊 代码分析 | ${{ needs.analyze.result }} | 代码统计分析 |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 静态分析 | ${{ needs.lint.result }} | ESLint + Prettier + TypeScript + Svelte |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 构建验证 | ${{ needs.build-check.result }} | 构建 + 打包测试 |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔒 安全检查 | ${{ needs.security.result }} | Trivy 漏洞扫描 |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📈 依赖分析 | ${{ needs.dependencies.result }} | 依赖更新检查 |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # 计算通过率
           PASSED=0
           TOTAL=5
 
-          [ "$ANALYZE_RESULT" = "success" ] && ((PASSED++))
-          [ "$LINT_RESULT" = "success" ] && ((PASSED++))
-          [ "$BUILD_CHECK_RESULT" = "success" ] && ((PASSED++))
-          [ "$SECURITY_RESULT" = "success" ] && ((PASSED++))
-          [ "$DEPENDENCIES_RESULT" = "success" ] && ((PASSED++))
+          # 直接在echo中计算，避免bash变量问题
+          if [ "${{ needs.analyze.result }}" = "success" ]; then PASSED=$((PASSED + 1)); fi
+          if [ "${{ needs.lint.result }}" = "success" ]; then PASSED=$((PASSED + 1)); fi
+          if [ "${{ needs.build-check.result }}" = "success" ]; then PASSED=$((PASSED + 1)); fi
+          if [ "${{ needs.security.result }}" = "success" ]; then PASSED=$((PASSED + 1)); fi
+          if [ "${{ needs.dependencies.result }}" = "success" ]; then PASSED=$((PASSED + 1)); fi
 
           PERCENTAGE=$((PASSED * 100 / TOTAL))
 
@@ -256,6 +250,10 @@ jobs:
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📈 执行统计" >> $GITHUB_STEP_SUMMARY
+          echo "- **通过项目**: $PASSED/$TOTAL" >> $GITHUB_STEP_SUMMARY
+          echo "- **总体评分**: ${PERCENTAGE}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 相关链接" >> $GITHUB_STEP_SUMMARY
-          echo "- [📋 详细报告](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-          echo "- [🏠 项目主页](${{ github.server_url }}/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [详细报告](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [项目主页](${{ github.server_url }}/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY

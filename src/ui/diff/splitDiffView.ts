@@ -151,7 +151,7 @@ export default class SplitDiffView extends ItemView {
     override async setState(state: DiffViewState, _: ViewStateResult): Promise<void> {
         this.state = state;
 
-        if (Platform.isMobile || (plugin as ObsidianGitPlugin).deviceType === 'tablet') {
+        if (Platform.isMobile || (this.plugin as unknown as ObsidianGitPlugin).deviceType === 'tablet') {
             //Update view title on mobile only to show the file name of the diff
             this.leaf.view.titleEl.textContent = this.getDisplayText();
         }

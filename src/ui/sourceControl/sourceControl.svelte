@@ -2,6 +2,7 @@
     import { Platform, Scope, setIcon } from "obsidian";
     import { SOURCE_CONTROL_VIEW_CONFIG } from "src/constants";
     import type ObsidianGit from "src/main";
+    import type { ObsidianGitPlugin } from "src/types";
     import type {
         FileStatusResult,
         Status,
@@ -16,6 +17,12 @@
     import TreeComponent from "./components/treeComponent.svelte";
     import type GitView from "./sourceControl";
     import TooManyFilesComponent from "./components/tooManyFilesComponent.svelte";
+
+    // 获取设备类型和响应式变量
+    let deviceType = $derived((plugin as ObsidianGitPlugin).deviceType);
+    let isMobile = $derived(deviceType === 'mobile');
+    let isTablet = $derived(deviceType === 'tablet');
+    let isSmallScreen = $derived(isMobile || (isTablet && window.innerWidth < 768));
 
     interface Props {
         plugin: ObsidianGit;
@@ -219,55 +226,69 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <main data-type={SOURCE_CONTROL_VIEW_CONFIG.type} class="git-view">
     <div class="nav-header">
-        <div class="nav-buttons-container">
+        <div class="nav-buttons-container git-toolbar {isSmallScreen ? 'git-toolbar-mobile' : isTablet ? 'git-toolbar-tablet' : ''}">
             <div
                 id="backup-btn"
                 data-icon="upload-cloud"
-                class="clickable-icon nav-action-button"
+                class="clickable-icon nav-action-button git-button"
                 aria-label="Commit and sync"
                 bind:this={buttons[0]}
                 onclick={commitAndSync}
-            ></div>
+            >
+                {#if isSmallScreen}<span>提交并同步</span>{/if}
+            </div>
             <div
                 id="commit-btn"
                 data-icon="check-circle-2"
-                class="clickable-icon nav-action-button"
+                class="clickable-icon nav-action-button git-button"
                 aria-label="Commit"
                 bind:this={buttons[1]}
                 onclick={commit}
-            ></div>
+            >
+                {#if isSmallScreen}<span>提交</span>{/if}
+            </div>
             <div
                 id="stage-all"
-                class="clickable-icon nav-action-button"
+                class="clickable-icon nav-action-button git-button"
                 data-icon="package-check"
                 aria-label="Stage all"
                 bind:this={buttons[2]}
                 onclick={stageAll}
-            ></div>
+            >
+                {#if isSmallScreen}<span>暂存全部</span>{/if}
+            </div>
             <div
                 id="unstage-all"
-                class="clickable-icon nav-action-button"
+                class="clickable-icon nav-action-button git-button"
                 data-icon="package-x"
                 aria-label="Unstage all"
                 bind:this={buttons[3]}
                 onclick={unstageAll}
-            ></div>
-            <div
-                id="push"
-                class="clickable-icon nav-action-button"
-                data-icon="corner-up-right"
-                aria-label="Push"
-                bind:this={buttons[4]}
-                onclick={push}
-            ></div>
-            <div
-                id="pull"
-                class="clickable-icon nav-action-button"
-                data-icon="corner-down-left"
-                aria-label="Pull"
-                bind:this={buttons[5]}
-                onclick={pull}
-            ></div>
+            >
+                {#if isSmallScreen}<span>取消暂存</span>{/if}
+            </div>
+            {#if !isSmallScreen || deviceType === 'tablet'}
+                <div
+                    id="push"
+                    class="clickable-icon nav-action-button git-button"
+                    data-icon="corner-up-right"
+                    aria-label="Push"
+                    bind:this={buttons[4]}
+                    onclick={push}
+                >
+                    {#if isSmallScreen}<span>推送</span>{/if}
+                </div>
+                <div
+                    id="pull"
+                    class="clickable-icon nav-action-button git-button"
+                    data-icon="corner-down-left"
+                    aria-label="Pull"
+                    bind:this={buttons[5]}
+                    onclick={pull}
+                >
+                    {#if isSmallScreen}<span>拉取</span>{/if}
+                </div>
+            {/if}
             <div
                 id="layoutChange"
                 class="clickable-icon nav-action-button"
@@ -283,13 +304,15 @@
             ></div>
             <div
                 id="refresh"
-                class="clickable-icon nav-action-button"
+                class="clickable-icon nav-action-button git-button"
                 class:loading
                 data-icon="refresh-cw"
                 aria-label="Refresh"
                 bind:this={buttons[7]}
                 onclick={triggerRefresh}
-            ></div>
+            >
+                {#if isSmallScreen}<span>刷新</span>{/if}
+            </div>
         </div>
     </div>
     <div class="git-commit-msg">
@@ -651,5 +674,62 @@
         mask-repeat: no-repeat;
         -webkit-mask-image: url("data:image/svg+xml,<svg viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M6 12C9.31371 12 12 9.31371 12 6C12 2.68629 9.31371 0 6 0C2.68629 0 0 2.68629 0 6C0 9.31371 2.68629 12 6 12ZM3.8705 3.09766L6.00003 5.22718L8.12955 3.09766L8.9024 3.8705L6.77287 6.00003L8.9024 8.12955L8.12955 8.9024L6.00003 6.77287L3.8705 8.9024L3.09766 8.12955L5.22718 6.00003L3.09766 3.8705L3.8705 3.09766Z' fill='currentColor'/></svg>");
         -webkit-mask-repeat: no-repeat;
+    }
+
+    /* 响应式设计 */
+    .git-toolbar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    /* 移动端按钮优化 */
+    .git-toolbar-mobile {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .git-toolbar-mobile .git-button {
+        width: 100%;
+        min-height: 44px; /* 更好的触摸目标 */
+        justify-content: center;
+    }
+
+    /* 平板端按钮优化 */
+    .git-toolbar-tablet {
+        gap: 6px;
+    }
+
+    .git-toolbar-tablet .git-button {
+        min-height: 40px;
+        flex: 1;
+    }
+
+    /* 小屏幕设备优化 */
+    @media (max-width: 768px) {
+        .git-commit-msg {
+            margin: 6px 2px;
+            font-size: 16px; /* 防止iOS缩放 */
+        }
+
+        .git-tools {
+            padding: 8px;
+        }
+
+        .files-count {
+            font-size: 0.9em;
+        }
+    }
+
+    /* 平板优化 */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .git-commit-msg {
+            margin: 6px 4px;
+        }
+
+        .git-tools {
+            padding: 10px;
+        }
     }
 </style>

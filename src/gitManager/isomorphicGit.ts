@@ -1274,9 +1274,9 @@ export class IsomorphicGit extends GitManager {
 // Convert a value to an Async Iterator
 // This will be easier with async generator functions.
 
-async function* arrayBufferToAsyncIterator(
+function* arrayBufferToAsyncIterator(
     buffer: ArrayBuffer
-): AsyncIterableIterator<Uint8Array> {
+): IterableIterator<Uint8Array> {
     yield new Uint8Array(buffer);
 }
 

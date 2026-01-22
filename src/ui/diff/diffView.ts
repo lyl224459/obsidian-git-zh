@@ -4,7 +4,7 @@ import { ItemView, Platform } from "obsidian";
 import { DIFF_VIEW_CONFIG } from "src/constants";
 import { SimpleGit } from "src/gitManager/simpleGit";
 import type ObsidianGit from "src/main";
-import type { DiffViewState } from "src/types";
+import type { DiffViewState, ObsidianGitPlugin } from "src/types";
 
 export default class DiffView extends ItemView {
     parser: DOMParser;
@@ -50,7 +50,7 @@ export default class DiffView extends ItemView {
     override async setState(state: DiffViewState, _: ViewStateResult): Promise<void> {
         this.state = state;
 
-        if (Platform.isMobile) {
+        if (Platform.isMobile || (plugin as ObsidianGitPlugin).deviceType === 'tablet') {
             //Update view title on mobile only to show the file name of the diff
             this.leaf.view.titleEl.textContent = this.getDisplayText();
         }

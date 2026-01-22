@@ -183,7 +183,7 @@ export class LineAuthoringFeature {
 
     private createFileOpenEvent(): EventRef {
         return this.plg.app.workspace.on(
-            "file-open" as any,
+            "file-open",
             (file: TFile) =>
                 void this.lineAuthorInfoProvider
                     ?.trackChanged(file)
@@ -193,8 +193,8 @@ export class LineAuthoringFeature {
 
     private createWorkspaceLeafChangeEvent(): EventRef {
         return this.plg.app.workspace.on(
-            "active-leaf-change" as any,
-            this.handleWorkspaceLeaf as any
+            "active-leaf-change",
+            this.handleWorkspaceLeaf
         );
     }
 
@@ -230,8 +230,8 @@ export class LineAuthoringFeature {
 
     private createGutterContextMenuHandler() {
         return this.plg.app.workspace.on(
-            "editor-menu" as any,
-            handleContextMenu as any
+            "editor-menu",
+            handleContextMenu
         );
     }
 }

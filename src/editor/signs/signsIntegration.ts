@@ -169,8 +169,8 @@ export class SignsFeature {
 
     private createWorkspaceLeafChangeEvent(): EventRef {
         return this.plg.app.workspace.on(
-            "active-leaf-change" as any,
-            this.handleWorkspaceLeaf as any
+            "active-leaf-change",
+            this.handleWorkspaceLeaf
         );
     }
 

@@ -11,7 +11,7 @@
 .git-signs-gutter {
     .cm-gutterElement {
         /* Needed to align the sign properly for different line heigts. Such as
-         * when having a heading or list item.
+         * when having a heading or list ite，m.
          */
         padding-top: 0 !important;
     }

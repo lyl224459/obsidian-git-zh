@@ -37,7 +37,12 @@ export function initI18n(locale?: string): void {
  * 从嵌套对象获取值
  */
 function getNestedValue(obj: unknown, path: string): unknown {
-    return path.split(".").reduce((current: any, key) => current?.[key], obj);
+    return path.split(".").reduce((current: unknown, key) => {
+        if (current && typeof current === 'object' && key in current) {
+            return (current as Record<string, unknown>)[key];
+        }
+        return undefined;
+    }, obj);
 }
 
 /**
@@ -46,9 +51,10 @@ function getNestedValue(obj: unknown, path: string): unknown {
  */
 function interpolate(template: string, variables?: Record<string, string | number>): string {
     if (!variables) return template;
-    
+
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-        return variables[key] !== undefined ? String(variables[key]) : match;
+        const value = variables[key as keyof typeof variables];
+        return value !== undefined ? String(value) : match;
     });
 }
 

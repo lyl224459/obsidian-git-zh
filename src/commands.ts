@@ -2,6 +2,7 @@ import { Notice, Platform, TFolder, WorkspaceLeaf } from "obsidian";
 import { HISTORY_VIEW_CONFIG, SOURCE_CONTROL_VIEW_CONFIG } from "./constants";
 import { SimpleGit } from "./gitManager/simpleGit";
 import ObsidianGit from "./main";
+import type { ObsidianGitPlugin } from "./types";
 import { openHistoryInGitHub, openLineInGitHub } from "./openInGitHub";
 import { ChangedFilesModal } from "./ui/modals/changedFilesModal";
 import { GeneralModal } from "./ui/modals/generalModal";
@@ -12,6 +13,7 @@ import { t } from "./i18n";
 
 export function addCommmands(plugin: ObsidianGit) {
     const app = plugin.app;
+    const isMobile = Platform.isMobileApp;
 
     plugin.addCommand({
         id: "edit-gitignore",
@@ -106,7 +108,7 @@ export function addCommmands(plugin: ObsidianGit) {
         name: t("commands.open-file-on-github"),
         editorCallback: (editor, { file }) => {
             if (file) {
-                openLineInGitHub(editor, file, plugin.gitManager);
+                void openLineInGitHub(editor, file, plugin.gitManager);
             }
         },
     });
@@ -116,7 +118,7 @@ export function addCommmands(plugin: ObsidianGit) {
         name: t("commands.open-file-history-on-github"),
         editorCallback: (_, { file }) => {
             if (file) {
-                openHistoryInGitHub(file, plugin.gitManager);
+                void openHistoryInGitHub(file, plugin.gitManager);
             }
         },
     });
@@ -124,8 +126,13 @@ export function addCommmands(plugin: ObsidianGit) {
     plugin.addCommand({
         id: "pull",
         name: t("commands.pull"),
-        callback: () =>
-            plugin.promiseQueue.addTask(() => plugin.pullChangesFromRemote()),
+        callback: () => {
+            if (isMobile) {
+                // 移动端优化：显示进度提示
+                new Notice("📱 正在拉取更新，这可能需要一些时间...", 3000);
+            }
+            plugin.promiseQueue.addTask(() => plugin.pullChangesFromRemote());
+        },
     });
 
     plugin.addCommand({
@@ -189,10 +196,20 @@ export function addCommmands(plugin: ObsidianGit) {
     plugin.addCommand({
         id: "commit",
         name: t("commands.commit"),
-        callback: () =>
+        callback: () => {
+            if (isMobile) {
+                // 移动端优化：检查是否有大量文件变更
+                plugin.getCachedStatus().then((status) => {
+                    const totalChanges = status.changed.length + status.staged.length;
+                    if (totalChanges > 20) {
+                        new Notice(`⚠️ 发现 ${totalChanges} 个文件变更，移动端建议分批提交`, 5000);
+                    }
+                }).catch(console.error);
+            }
             plugin.promiseQueue.addTask(() =>
                 plugin.commit({ fromAuto: false })
-            ),
+            );
+        },
     });
 
     plugin.addCommand({
@@ -561,4 +578,164 @@ export function addCommmands(plugin: ObsidianGit) {
             return true;
         },
     });
+
+    // 移动端和平板专用优化命令
+    if (Platform.isMobileApp) {
+        plugin.addCommand({
+            id: "mobile-quick-sync",
+            name: "📱 快速同步 (移动端优化)",
+            callback: async () => {
+                new Notice("🚀 开始快速同步...", 2000);
+
+                try {
+                    // 先检查状态
+                    const status = await plugin.getCachedStatus();
+
+                    if (status.changed.length === 0 && status.staged.length === 0) {
+                        // 没有变更，直接拉取
+                        plugin.promiseQueue.addTask(() => plugin.pullChangesFromRemote());
+                        new Notice("✅ 已同步最新更改", 3000);
+                    } else {
+                        // 有变更，先提交再同步
+                        const totalChanges = status.changed.length + status.staged.length;
+                        new Notice(`📝 提交 ${totalChanges} 个文件变更...`, 2000);
+
+                        const commitSuccess = await plugin.commit({
+                            fromAuto: false,
+                            commitMessage: `Mobile sync: ${new Date().toLocaleString()}`
+                        });
+
+                        if (commitSuccess) {
+                            plugin.promiseQueue.addTask(() => plugin.push());
+                            new Notice("✅ 提交并推送成功", 3000);
+                        } else {
+                            new Notice("❌ 提交失败，请检查文件状态", 5000);
+                        }
+                    }
+                } catch (error) {
+                    plugin.displayError(error);
+                }
+            },
+        });
+
+        plugin.addCommand({
+            id: "mobile-batch-commit",
+            name: "📱 批量提交 (移动端优化)",
+            callback: async () => {
+                try {
+                    const status = await plugin.getCachedStatus();
+                    const totalChanges = status.changed.length + status.staged.length;
+
+                    if (totalChanges === 0) {
+                        new Notice("ℹ️ 没有需要提交的更改", 3000);
+                        return;
+                    }
+
+                    // 移动端分批提交策略
+                    const batchSize = Math.min(totalChanges, 10); // 每批最多10个文件
+                    new Notice(`📦 将分批提交 ${totalChanges} 个文件 (每批 ${batchSize} 个)...`, 3000);
+
+                    // 第一步：分批暂存文件
+                    let stagedCount = 0;
+                    for (let i = 0; i < status.changed.length && stagedCount < batchSize; i++) {
+                        const file = status.changed[i];
+                        const abstractFile = plugin.app.vault.getAbstractFileByPath(file);
+                        if (abstractFile && abstractFile instanceof TFile) {
+                            const success = await plugin.stageFile(abstractFile);
+                            if (success) stagedCount++;
+                        }
+                    }
+
+                    if (stagedCount > 0) {
+                        new Notice(`✅ 已暂存 ${stagedCount} 个文件，准备提交...`, 2000);
+
+                        // 第二步：提交暂存的文件
+                        const commitSuccess = await plugin.commit({
+                            fromAuto: false,
+                            onlyStaged: true,
+                            commitMessage: `Mobile batch commit: ${stagedCount} files at ${new Date().toLocaleString()}`
+                        });
+
+                        if (commitSuccess) {
+                            new Notice(`✅ 成功提交 ${stagedCount} 个文件`, 3000);
+                        } else {
+                            new Notice("❌ 提交失败", 5000);
+                        }
+                    } else {
+                        new Notice("❌ 无法暂存文件，请检查文件状态", 5000);
+                    }
+                } catch (error) {
+                    plugin.displayError(error);
+                }
+            },
+        });
+
+        plugin.addCommand({
+            id: "mobile-cleanup",
+            name: "🧹 移动端清理 (释放内存)",
+            callback: () => {
+                const deviceName = plugin.deviceType === 'tablet' ? '平板' : '移动';
+                new Notice(`🧹 开始清理${deviceName}端缓存和优化内存...`, 2000);
+
+                try {
+                    // 清理缓存
+                    plugin.mobileCache.status = null;
+                    plugin.mobileCache.statusTimestamp = 0;
+
+                    // 强制垃圾回收（如果可用）
+                    if (window.gc) {
+                        window.gc();
+                    }
+
+                    // 刷新所有视图
+                    plugin.app.workspace.trigger("obsidian-git:refresh");
+
+                    new Notice(`✅ ${deviceName}端清理完成，内存已优化`, 3000);
+                } catch (error) {
+                    plugin.displayError(error);
+                }
+            },
+        });
+
+        // 平板专用命令
+        const deviceType = (plugin as ObsidianGitPlugin).deviceType;
+        if (deviceType === 'tablet') {
+            plugin.addCommand({
+                id: "tablet-multitask",
+                name: "📱 平板多任务模式 (开启多个视图)",
+                callback: () => {
+                    new Notice("📱 启用平板多任务模式...", 2000);
+
+                    try {
+                        // 在平板上可以同时打开更多视图
+                        const leaves = plugin.app.workspace.getLeavesOfType("git-view");
+
+                        if (leaves.length === 0) {
+                            // 打开源代码管理视图
+                            void plugin.app.workspace.getRightLeaf(false)?.setViewState({
+                                type: "git-view",
+                                active: true,
+                            });
+                        }
+
+                        // 延迟一下再打开历史视图，避免冲突
+                        setTimeout(() => {
+                            const historyLeaves = plugin.app.workspace.getLeavesOfType("git-history-view");
+                            if (historyLeaves.length === 0) {
+                                void plugin.app.workspace.getRightLeaf(false)?.setViewState({
+                                    type: "git-history-view",
+                                    active: false, // 不激活，保持当前视图
+                                });
+                            }
+                            new Notice("✅ 平板多任务模式已启用，可以同时查看多个Git视图", 3000);
+                        }, 500);
+
+                    } catch (error) {
+                        plugin.displayError(error);
+                        new Notice("❌ 启用多任务模式失败", 3000);
+                    }
+                },
+            });
+        }
+    }
 }

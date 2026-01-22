@@ -3,7 +3,7 @@ import { debounce, ItemView, Platform, setIcon } from "obsidian";
 import { SPLIT_DIFF_VIEW_CONFIG } from "src/constants";
 import { SimpleGit } from "src/gitManager/simpleGit";
 import type ObsidianGit from "src/main";
-import type { DiffViewState } from "src/types";
+import type { DiffViewState, ObsidianGitPlugin } from "src/types";
 
 import { history, indentWithTab, standardKeymap } from "@codemirror/commands";
 import { getChunks, MergeView } from "@codemirror/merge";
@@ -151,7 +151,7 @@ export default class SplitDiffView extends ItemView {
     override async setState(state: DiffViewState, _: ViewStateResult): Promise<void> {
         this.state = state;
 
-        if (Platform.isMobile) {
+        if (Platform.isMobile || (plugin as ObsidianGitPlugin).deviceType === 'tablet') {
             //Update view title on mobile only to show the file name of the diff
             this.leaf.view.titleEl.textContent = this.getDisplayText();
         }

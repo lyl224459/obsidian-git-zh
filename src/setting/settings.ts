@@ -6,6 +6,7 @@ import {
     Setting,
     TextAreaComponent,
 } from "obsidian";
+import type { ObsidianGitPlugin } from "../types";
 import {
     DATE_TIME_FORMAT_SECONDS,
     DEFAULT_SETTINGS,
@@ -49,6 +50,164 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         return this.plugin.settings;
     }
 
+    /**
+     * 添加设备类型指示器
+     */
+    private addDeviceIndicator(containerEl: Element, deviceType: string): void {
+        const indicator = containerEl.createDiv("git-device-indicator");
+
+        let deviceIcon = "💻";
+        let deviceText = "桌面设备";
+        let deviceDesc = "完整功能支持";
+
+        switch (deviceType) {
+            case 'tablet':
+                deviceIcon = "📱";
+                deviceText = "平板设备";
+                deviceDesc = "优化多任务体验";
+                break;
+            case 'mobile':
+                deviceIcon = "📱";
+                deviceText = "移动设备";
+                deviceDesc = "精简界面设计";
+                break;
+        }
+
+        indicator.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--background-secondary); border-radius: 8px; margin-bottom: 20px;">
+                <span style="font-size: 20px;">${deviceIcon}</span>
+                <div>
+                    <div style="font-weight: bold; color: var(--text-normal);">${deviceText}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">${deviceDesc}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * 添加自定义样式
+     */
+    private addCustomStyles(containerEl: Element): void {
+        const style = containerEl.createEl("style");
+        style.textContent = `
+            .git-settings-section {
+                margin-bottom: 2em;
+                padding: 1.5em;
+                background: var(--background-primary);
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 8px;
+            }
+
+            .git-settings-section h3 {
+                margin-top: 0;
+                margin-bottom: 1em;
+                font-size: 1.2em;
+                font-weight: 600;
+            }
+
+            .git-device-indicator {
+                margin-bottom: 1.5em;
+            }
+
+            .setting-item-description {
+                color: var(--text-muted);
+                font-size: 0.9em;
+                margin-top: 0.25em;
+            }
+
+            /* 移动端优化 */
+            @media (max-width: 768px) {
+                .git-settings-section {
+                    padding: 1em;
+                    margin-bottom: 1.5em;
+                }
+
+                .git-settings-section h3 {
+                    font-size: 1.1em;
+                }
+            }
+
+            /* 平板优化 */
+            @media (min-width: 769px) and (max-width: 1024px) {
+                .git-settings-section {
+                    padding: 1.2em;
+                }
+            }
+
+            /* 快速操作样式 */
+            .git-guide-section {
+                background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-secondary) 100%);
+                border: 1px solid var(--interactive-accent);
+            }
+
+            .git-quick-actions {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+                margin-bottom: 2em;
+            }
+
+            .git-quick-action-btn {
+                transition: all 0.15s ease;
+            }
+
+            .git-quick-action-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .git-tips-section ul {
+                list-style-type: none;
+                padding-left: 0;
+            }
+
+            .git-tips-section li {
+                position: relative;
+                padding-left: 1.5em;
+            }
+
+            .git-tips-section li:before {
+                content: "💡";
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+
+            /* 移动端快速操作优化 */
+            @media (max-width: 768px) {
+                .git-quick-actions {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 8px;
+                }
+
+                .git-quick-action-btn {
+                    padding: 8px !important;
+                    min-height: 80px;
+                }
+
+                .git-quick-action-btn span:first-child {
+                    font-size: 18px !important;
+                }
+
+                .git-quick-action-btn span:nth-child(2) {
+                    font-size: 11px !important;
+                }
+
+                .git-quick-action-btn span:nth-child(3) {
+                    font-size: 9px !important;
+                }
+            }
+
+            /* 平板端快速操作优化 */
+            @media (min-width: 769px) and (max-width: 1024px) {
+                .git-quick-actions {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                }
+            }
+        `;
+    }
+
     display(): void {
         const { containerEl } = this;
         const plugin: ObsidianGit = this.plugin;
@@ -61,47 +220,434 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         }
 
         const gitReady = plugin.gitReady;
+        const deviceType = (plugin as ObsidianGitPlugin).deviceType;
+        const isMobileOrTablet = deviceType !== 'desktop';
 
         containerEl.empty();
-        
-        // 语言设置
-        new Setting(containerEl)
+
+        // 添加自定义样式
+        this.addCustomStyles(containerEl);
+
+        // 添加设备类型指示器
+        this.addDeviceIndicator(containerEl, deviceType);
+
+        // 语言设置 - 始终显示
+        const languageSection = containerEl.createDiv("git-settings-section");
+        languageSection.createEl("h3", { text: "🌐 基本设置", attr: { style: "margin-bottom: 1em; color: var(--text-accent);" } });
+
+        new Setting(languageSection)
             .setName(t("settings.language.name"))
             .setDesc(t("settings.language.desc"))
             .addDropdown((dropdown) => {
                 dropdown.addOption("auto", t("settings.language.auto"));
                 dropdown.addOption("en", "English");
                 dropdown.addOption("zh-CN", "简体中文");
-                
+
                 dropdown.setValue(plugin.settings.language || "auto");
                 dropdown.onChange(async (value) => {
                     plugin.settings.language = value;
                     await plugin.saveSettings();
-                    
+
                     // 立即应用语言更改
                     if (value === "auto") {
                         setLocale(window.moment.locale());
                     } else {
                         setLocale(value);
                     }
-                    
+
                     // 刷新设置页面以显示翻译
                     this.display();
-                    
+
                     new Notice(t("settings.language.restart-notice"));
                 });
             });
         
         if (!gitReady) {
-            containerEl.createEl("p", {
+            const gitNotReadySection = containerEl.createDiv("git-settings-section");
+            gitNotReadySection.createEl("h3", { text: "⚠️ Git 状态", attr: { style: "margin-bottom: 1em; color: var(--text-warning);" } });
+
+            gitNotReadySection.createEl("p", {
                 text: t("settings.git-not-ready.text"),
+                attr: { style: "color: var(--text-muted); margin-bottom: 20px;" }
             });
-            containerEl.createEl("br");
+            return;
         }
 
-        let setting: Setting;
-        if (gitReady) {
-            new Setting(containerEl).setName(t("settings.heading.automatic")).setHeading();
+        // Git 设置分组
+        this.createGitSettingsSections(containerEl, plugin, commitOrSync, isMobileOrTablet);
+    }
+
+    /**
+     * 创建自动化设置分组
+     */
+    private createAutomationSection(
+        containerEl: Element,
+        plugin: ObsidianGit,
+        commitOrSync: string,
+        isMobileOrTablet: boolean
+    ): void {
+        const section = containerEl.createDiv("git-settings-section");
+        section.createEl("h3", {
+            text: "🔄 自动化设置",
+            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+        });
+
+        // 分离定时器设置
+        new Setting(section)
+            .setName(t("settings.split-timers.name"))
+            .setDesc(t("settings.split-timers.desc"))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(plugin.settings.differentIntervalCommitAndPush)
+                    .onChange(async (value) => {
+                        plugin.settings.differentIntervalCommitAndPush = value;
+                        await plugin.saveSettings();
+                        plugin.automaticsManager.reload("commit", "push");
+                        this.refreshDisplayWithDelay();
+                    })
+            );
+
+        // 自动保存间隔
+        new Setting(section)
+            .setName(t("settings.auto-save-interval.name", { commitOrSync }))
+            .setDesc(
+                t("settings.auto-save-interval.desc", {
+                    action: plugin.settings.differentIntervalCommitAndPush
+                        ? t("settings.auto-save-interval.action-commit")
+                        : t("settings.auto-save-interval.action-commit-and-sync")
+                })
+            )
+            .addText((text) => {
+                text.inputEl.type = "number";
+                this.setNonDefaultValue({
+                    text,
+                    settingsProperty: "autoSaveInterval",
+                });
+                text.setPlaceholder(String(DEFAULT_SETTINGS.autoSaveInterval));
+                text.onChange(async (value) => {
+                    if (value !== "") {
+                        plugin.settings.autoSaveInterval = Number(value);
+                    } else {
+                        plugin.settings.autoSaveInterval = DEFAULT_SETTINGS.autoSaveInterval;
+                    }
+                    await plugin.saveSettings();
+                    plugin.automaticsManager.reload("commit");
+                });
+            });
+
+        // 自动推送间隔
+        new Setting(section)
+            .setName(t("settings.auto-push-interval.name"))
+            .setDesc(t("settings.auto-push-interval.desc"))
+            .addText((text) => {
+                text.inputEl.type = "number";
+                this.setNonDefaultValue({
+                    text,
+                    settingsProperty: "autoPushInterval",
+                });
+                text.setPlaceholder(String(DEFAULT_SETTINGS.autoPushInterval));
+                text.onChange(async (value) => {
+                    if (value !== "") {
+                        plugin.settings.autoPushInterval = Number(value);
+                    } else {
+                        plugin.settings.autoPushInterval = DEFAULT_SETTINGS.autoPushInterval;
+                    }
+                    await plugin.saveSettings();
+                    plugin.automaticsManager.reload("push");
+                });
+            });
+
+        // 自动拉取间隔
+        new Setting(section)
+            .setName(t("settings.auto-pull-interval.name"))
+            .setDesc(t("settings.auto-pull-interval.desc"))
+            .addText((text) => {
+                text.inputEl.type = "number";
+                this.setNonDefaultValue({
+                    text,
+                    settingsProperty: "autoPullInterval",
+                });
+                text.setPlaceholder(String(DEFAULT_SETTINGS.autoPullInterval));
+                text.onChange(async (value) => {
+                    if (value !== "") {
+                        plugin.settings.autoPullInterval = Number(value);
+                    } else {
+                        plugin.settings.autoPullInterval = DEFAULT_SETTINGS.autoPullInterval;
+                    }
+                    await plugin.saveSettings();
+                    plugin.automaticsManager.reload("pull");
+                });
+            });
+
+        // 其他自动化设置只在桌面设备上显示
+        if (!isMobileOrTablet) {
+            // 启动时自动拉取
+            new Setting(section)
+                .setName(t("settings.auto-pull-on-boot.name"))
+                .setDesc(t("settings.auto-pull-on-boot.desc"))
+                .addToggle((toggle) =>
+                    toggle
+                        .setValue(plugin.settings.autoPullOnBoot)
+                        .onChange(async (value) => {
+                            plugin.settings.autoPullOnBoot = value;
+                            await plugin.saveSettings();
+                        })
+                );
+
+            // 文件变更后自动备份
+            const autoBackupSetting = new Setting(section)
+                .setName(t("settings.auto-backup-after-file-change.name"))
+                .setDesc(t("settings.auto-backup-after-file-change.desc"))
+                .addToggle((toggle) =>
+                    toggle
+                        .setValue(plugin.settings.autoBackupAfterFileChange)
+                        .onChange(async (value) => {
+                            plugin.settings.autoBackupAfterFileChange = value;
+                            await plugin.saveSettings();
+                            plugin.automaticsManager.reload("commit");
+                        })
+                );
+            this.mayDisableSetting(
+                autoBackupSetting,
+                plugin.settings.autoBackupAfterFileChange
+            );
+        }
+    }
+
+    /**
+     * 创建提交设置分组
+     */
+    private createCommitSection(containerEl: Element, plugin: ObsidianGit): void {
+        const section = containerEl.createDiv("git-settings-section");
+        section.createEl("h3", {
+            text: "💾 提交设置",
+            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+        });
+
+        // 提交消息模板
+        new Setting(section)
+            .setName(t("settings.commit-message.name"))
+            .setDesc(t("settings.commit-message.desc"))
+            .addTextArea((cb) => {
+                cb.setValue(plugin.settings.commitMessage);
+                cb.onChange(async (value) => {
+                    plugin.settings.commitMessage = value;
+                    await plugin.saveSettings();
+                });
+            });
+
+        // 提交作者信息
+        if (!Platform.isMobileApp) {
+            new Setting(section)
+                .setName(t("settings.author-name.name"))
+                .setDesc(t("settings.author-name.desc"))
+                .addText((text) => {
+                    text.setValue(plugin.settings.authorName || "");
+                    text.setPlaceholder("Your Name");
+                    text.onChange(async (value) => {
+                        plugin.settings.authorName = value;
+                        await plugin.saveSettings();
+                    });
+                });
+
+            new Setting(section)
+                .setName(t("settings.author-email.name"))
+                .setDesc(t("settings.author-email.desc"))
+                .addText((text) => {
+                    text.setValue(plugin.settings.authorEmail || "");
+                    text.setPlaceholder("your.email@example.com");
+                    text.onChange(async (value) => {
+                        plugin.settings.authorEmail = value;
+                        await plugin.saveSettings();
+                    });
+                });
+        }
+    }
+
+    /**
+     * 创建视图设置分组
+     */
+    private createViewSection(
+        containerEl: Element,
+        plugin: ObsidianGit,
+        isMobileOrTablet: boolean
+    ): void {
+        const section = containerEl.createDiv("git-settings-section");
+        section.createEl("h3", {
+            text: "👁️ 视图设置",
+            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+        });
+
+        // 历史记录视图设置
+        new Setting(section)
+            .setName(t("settings.history-view.name"))
+            .setHeading();
+
+        new Setting(section)
+            .setName(t("settings.date-in-history-view.name"))
+            .setDesc(t("settings.date-in-history-view.desc"))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(plugin.settings.dateInHistoryView)
+                    .onChange(async (value) => {
+                        plugin.settings.dateInHistoryView = value;
+                        await plugin.saveSettings();
+                    })
+            );
+
+        new Setting(section)
+            .setName(t("settings.commit-date-format.name"))
+            .setDesc(t("settings.commit-date-format.desc"))
+            .addText((text) => {
+                text.setValue(plugin.settings.commitDateFormat);
+                text.setPlaceholder("YYYY-MM-DD HH:mm:ss");
+                text.onChange(async (value) => {
+                    plugin.settings.commitDateFormat = value;
+                    await plugin.saveSettings();
+                });
+            });
+
+        // 源代码管理视图设置
+        new Setting(section)
+            .setName(t("settings.source-control-view.name"))
+            .setHeading();
+
+        new Setting(section)
+            .setName(t("settings.tree-structure.name"))
+            .setDesc(t("settings.tree-structure.desc"))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(plugin.settings.treeStructure)
+                    .onChange(async (value) => {
+                        plugin.settings.treeStructure = value;
+                        await plugin.saveSettings();
+                    })
+            );
+
+        // 只在桌面设备上显示高级视图设置
+        if (!isMobileOrTablet) {
+            new Setting(section)
+                .setName(t("settings.show-status-bar.name"))
+                .setDesc(t("settings.show-status-bar.desc"))
+                .addToggle((toggle) =>
+                    toggle
+                        .setValue(plugin.settings.showStatusBar)
+                        .onChange(async (value) => {
+                            plugin.settings.showStatusBar = value;
+                            await plugin.saveSettings();
+                        })
+                    );
+
+            new Setting(section)
+                .setName(t("settings.show-branch-status-bar.name"))
+                .setDesc(t("settings.show-branch-status-bar.desc"))
+                .addToggle((toggle) =>
+                    toggle
+                        .setValue(plugin.settings.showBranchStatusBar)
+                        .onChange(async (value) => {
+                            plugin.settings.showBranchStatusBar = value;
+                            await plugin.saveSettings();
+                        })
+                    );
+        }
+    }
+
+    /**
+     * 创建高级设置分组
+     */
+    private createAdvancedSection(
+        containerEl: Element,
+        plugin: ObsidianGit
+    ): void {
+        const section = containerEl.createDiv("git-settings-section");
+        section.createEl("h3", {
+            text: "⚙️ 高级设置",
+            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+        });
+
+        // 差异样式设置
+        new Setting(section)
+            .setName(t("settings.diff-style.name"))
+            .setDesc(t("settings.diff-style.desc"))
+            .addDropdown((dropdown) => {
+                dropdown.addOption("git_unified", t("settings.diff-style.unified"));
+                dropdown.addOption("split", t("settings.diff-style.split"));
+                dropdown.setValue(plugin.settings.diffStyle);
+                dropdown.onChange(async (value: "git_unified" | "split") => {
+                    plugin.settings.diffStyle = value;
+                    await plugin.saveSettings();
+                });
+            });
+
+        // Git 目录设置
+        new Setting(section)
+            .setName(t("settings.custom-base-path.name"))
+            .setDesc(t("settings.custom-base-path.desc"))
+            .addText((cb) => {
+                cb.setValue(plugin.settings.basePath);
+                cb.setPlaceholder("directory/directory-with-git-repo");
+                cb.onChange(async (value) => {
+                    plugin.settings.basePath = value;
+                    await plugin.saveSettings();
+                    plugin.gitManager
+                        .updateBasePath(value || "")
+                        .catch((e) => plugin.displayError(e));
+                });
+            });
+
+        new Setting(section)
+            .setName(t("settings.custom-git-dir.name"))
+            .setDesc(t("settings.custom-git-dir.desc"))
+            .addText((cb) => {
+                cb.setValue(plugin.settings.gitDir);
+                cb.setPlaceholder(".git");
+                cb.onChange(async (value) => {
+                    plugin.settings.gitDir = value;
+                    await plugin.saveSettings();
+                });
+            });
+
+        // 调试信息
+        const debugSection = containerEl.createDiv("git-settings-section");
+        debugSection.createEl("h3", {
+            text: "🐛 调试信息",
+            attr: { style: "margin-bottom: 1em; color: var(--text-warning);" }
+        });
+
+        // 调试信息按钮
+        new Setting(debugSection)
+            .setName(t("settings.debugging-info.name"))
+            .setDesc(t("settings.debugging-info.desc"))
+            .addButton((button) =>
+                button.setButtonText(t("settings.debugging-info.button")).onClick(async () => {
+                    const info = this.getDebugInfo(plugin);
+                    await navigator.clipboard.writeText(info);
+                    new Notice(t("notices.copy-debug-info"));
+                })
+            );
+
+    }
+
+    /**
+     * 创建Git设置分组
+     */
+    private createGitSettingsSections(
+        containerEl: Element,
+        plugin: ObsidianGit,
+        commitOrSync: string,
+        isMobileOrTablet: boolean
+    ): void {
+        // 自动化设置
+        this.createAutomationSection(containerEl, plugin, commitOrSync, isMobileOrTablet);
+
+        // 提交设置
+        this.createCommitSection(containerEl, plugin);
+
+        // 视图设置
+        this.createViewSection(containerEl, plugin, isMobileOrTablet);
+
+        // 高级设置
+        this.createAdvancedSection(containerEl, plugin);
             new Setting(containerEl)
                 .setName(t("settings.split-timers.name"))
                 .setDesc(t("settings.split-timers.desc"))
@@ -149,7 +695,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                     });
                 });
 
-            setting = new Setting(containerEl)
+            const autoBackupSetting = new Setting(containerEl)
                 .setName(t("settings.auto-backup-after-file-change.name", { commitOrSync }))
                 .setDesc(
                     t("settings.auto-backup-after-file-change.desc", {
@@ -169,11 +715,11 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                         })
                 );
             this.mayDisableSetting(
-                setting,
+                autoBackupSetting,
                 plugin.settings.setLastSaveToLastCommit
             );
 
-            setting = new Setting(containerEl)
+            const lastSaveSetting = new Setting(containerEl)
                 .setName(t("settings.auto-backup-after-latest-commit.name", { commitOrSync }))
                 .setDesc(
                     t("settings.auto-backup-after-latest-commit.desc", { commitOrSync })
@@ -189,11 +735,11 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                         })
                 );
             this.mayDisableSetting(
-                setting,
+                lastSaveSetting,
                 plugin.settings.autoBackupAfterFileChange
             );
 
-            setting = new Setting(containerEl)
+            const pushIntervalSetting = new Setting(containerEl)
                 .setName(t("settings.auto-push-interval.name"))
                 .setDesc(t("settings.auto-push-interval.desc"))
                 .addText((text) => {
@@ -217,7 +763,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                     });
                 });
             this.mayDisableSetting(
-                setting,
+                pushIntervalSetting,
                 !plugin.settings.differentIntervalCommitAndPush
             );
 
@@ -272,7 +818,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                         })
                 );
 
-            setting = new Setting(containerEl)
+            const commitMessageSetting = new Setting(containerEl)
                 .setName(t("settings.auto-commit-message.name", { commitOrSync }))
                 .setDesc(t("settings.auto-commit-message.desc"))
                 .addTextArea((text) => {
@@ -293,7 +839,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                     });
                 });
             this.mayDisableSetting(
-                setting,
+                commitMessageSetting,
                 plugin.settings.customMessageOnAutoBackup
             );
 
@@ -540,7 +1086,6 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
 
                 this.addLineAuthorInfoSettings();
             }
-        }
 
         new Setting(containerEl).setName(t("settings.heading.history-view")).setHeading();
 
@@ -918,6 +1463,89 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                     })
             );
 
+        // 移动端和平板优化设置
+        if (Platform.isMobileApp) {
+            new Setting(containerEl).setName("📱 移动端优化").setHeading();
+
+            new Setting(containerEl)
+                .setName("启用移动端优化")
+                .setDesc("自动检测设备性能并应用优化设置")
+                .addToggle((toggle) =>
+                    toggle
+                        .setValue(plugin.settings.mobileOptimizationsEnabled)
+                        .onChange(async (value) => {
+                            plugin.settings.mobileOptimizationsEnabled = value;
+                            await plugin.saveSettings();
+                            if (value) {
+                                new Notice("📱 移动端优化已启用，将在下次启动时生效", 3000);
+                            }
+                        })
+                );
+
+            new Setting(containerEl)
+                .setName("移动端历史记录数量")
+                .setDesc("移动端显示的历史记录最大数量")
+                .addText((text) => {
+                    text.inputEl.type = "number";
+                    text.setValue(String(plugin.settings.mobileHistoryViewCount));
+                    text.onChange(async (value) => {
+                        const numValue = parseInt(value);
+                        if (!isNaN(numValue) && numValue > 0) {
+                            plugin.settings.mobileHistoryViewCount = numValue;
+                            await plugin.saveSettings();
+                        }
+                    });
+                });
+
+            new Setting(containerEl)
+                .setName("检测设备性能")
+                .setDesc("重新检测设备性能并调整优化设置")
+                .addButton((button) =>
+                    button.setButtonText("检测性能").onClick(async () => {
+                        await plugin.initializeMobileOptimizations();
+                        new Notice("✅ 性能检测完成，已应用相应优化", 3000);
+                    })
+                );
+
+            const deviceType = (plugin as ObsidianGitPlugin).deviceType;
+            const deviceName = deviceType === 'tablet' ? '平板' : '移动';
+
+            new Setting(containerEl)
+                .setName(`查看${deviceName}端性能统计`)
+                .setDesc(`显示${deviceName}端性能监控数据`)
+                .addButton((button) =>
+                    button.setButtonText("查看统计").onClick(() => {
+                        const stats = plugin.getMobilePerformanceStats();
+                        const message = [
+                            `📊 ${deviceName}端性能统计`,
+                            `设备类型: ${deviceType}`,
+                            `总操作次数: ${stats.totalOperations}`,
+                            `平均响应时间: ${stats.averageTime}ms`,
+                            `设备性能等级: ${stats.performanceProfile}`,
+                            `仓库复杂度: ${stats.repositoryComplexity}`,
+                            `缓存命中率: ${(stats.cacheHitRate * 100).toFixed(1)}%`,
+                        ].join('\n');
+
+                        new Notice(message, 8000);
+                    })
+                );
+
+            if (deviceType === 'tablet') {
+                new Setting(containerEl)
+                    .setName("平板多任务优化")
+                    .setDesc("启用平板设备的多任务和分屏优化")
+                    .addToggle((toggle) =>
+                        toggle
+                            .setValue(plugin.settings.tabletMultitaskEnabled ?? true)
+                            .onChange(async (value) => {
+                                plugin.settings.tabletMultitaskEnabled = value;
+                                await plugin.saveSettings();
+                                new Notice(`📱 平板多任务${value ? '已启用' : '已禁用'}`, 2000);
+                            })
+                    );
+            }
+        }
+
         new Setting(containerEl).setName(t("settings.heading.support")).setHeading();
         new Setting(containerEl)
             .setName(t("settings.donate.name"))
@@ -960,6 +1588,9 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 keys.createEl("kbd", { text: "CTRL + SHIFT + I" });
             }
         }
+
+        // 添加快速入门指南
+        this.addQuickStartGuide(containerEl, plugin, isMobileOrTablet);
     }
 
     mayDisableSetting(setting: Setting, disable: boolean) {
@@ -987,6 +1618,133 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         this.settings.lineAuthor[key] = value;
         await this.plugin.saveSettings();
         this.plugin.editorIntegration.lineAuthoringFeature.refreshLineAuthorViews();
+    }
+
+    /**
+     * 获取调试信息
+     */
+    private getDebugInfo(plugin: ObsidianGit): string {
+        const debugInfo = {
+            version: plugin.manifest.version,
+            settings: plugin.settings,
+            gitReady: plugin.gitReady,
+            deviceType: (plugin as ObsidianGitPlugin).deviceType,
+            platform: {
+                isDesktop: Platform.isDesktopApp,
+                isMobile: Platform.isMobileApp,
+                userAgent: navigator.userAgent,
+            },
+            gitManager: plugin.gitManager?.constructor.name || 'None',
+            automaticsEnabled: plugin.automaticsManager?.isEnabled() || false,
+        };
+
+        return JSON.stringify(debugInfo, null, 2);
+    }
+
+    /**
+     * 添加快速入门指南
+     */
+    private addQuickStartGuide(
+        containerEl: Element,
+        plugin: ObsidianGit,
+        isMobileOrTablet: boolean
+    ): void {
+        const guideSection = containerEl.createDiv("git-settings-section git-guide-section");
+        guideSection.createEl("h3", {
+            text: "🚀 快速入门指南",
+            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+        });
+
+        // 快速操作按钮
+        const quickActions = guideSection.createDiv("git-quick-actions");
+
+        const actions = [
+            {
+                icon: "📁",
+                title: "打开源代码管理",
+                desc: "查看文件变更和提交",
+                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-source-control-view")
+            },
+            {
+                icon: "📜",
+                title: "打开历史记录",
+                desc: "浏览提交历史",
+                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-history-view")
+            },
+            {
+                icon: "🔍",
+                title: "打开差异视图",
+                desc: "查看文件差异",
+                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-diff-view")
+            },
+            {
+                icon: "⚡",
+                title: "立即提交",
+                desc: "提交当前变更",
+                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:commit")
+            }
+        ];
+
+        actions.forEach(action => {
+            const actionBtn = quickActions.createEl("button", {
+                cls: "git-quick-action-btn",
+                attr: {
+                    title: action.desc,
+                    style: "display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-primary); cursor: pointer; transition: all 0.15s ease;"
+                }
+            });
+
+            actionBtn.innerHTML = `
+                <span style="font-size: 20px;">${action.icon}</span>
+                <span style="font-size: 12px; font-weight: 500; color: var(--text-normal);">${action.title}</span>
+                <span style="font-size: 10px; color: var(--text-muted); text-align: center;">${action.desc}</span>
+            `;
+
+            actionBtn.addEventListener("click", () => {
+                try {
+                    action.action();
+                } catch (e) {
+                    console.error("Failed to execute action:", e);
+                    new Notice("操作执行失败，请检查Git状态", 3000);
+                }
+            });
+
+            // 添加悬停效果
+            actionBtn.addEventListener("mouseenter", () => {
+                actionBtn.style.background = "var(--background-modifier-hover)";
+                actionBtn.style.borderColor = "var(--interactive-accent)";
+            });
+
+            actionBtn.addEventListener("mouseleave", () => {
+                actionBtn.style.background = "var(--background-primary)";
+                actionBtn.style.borderColor = "var(--background-modifier-border)";
+            });
+        });
+
+        // 使用提示
+        const tipsSection = guideSection.createDiv("git-tips-section");
+        tipsSection.createEl("h4", {
+            text: "💡 使用提示",
+            attr: { style: "margin: 1.5em 0 0.5em 0; color: var(--text-normal);" }
+        });
+
+        const tips = [
+            "📱 移动端建议使用分批提交，避免一次性提交过多文件",
+            "⚡ 自动同步功能可以在后台运行，无需手动操作",
+            "🔄 定期查看历史记录，了解代码变更情况",
+            "🛠️ 如遇到问题，可以使用调试信息按钮获取详细信息"
+        ];
+
+        const tipsList = tipsSection.createEl("ul", {
+            attr: { style: "margin: 0; padding-left: 1.5em;" }
+        });
+
+        tips.forEach(tip => {
+            tipsList.createEl("li", {
+                text: tip,
+                attr: { style: "margin-bottom: 0.5em; color: var(--text-muted); font-size: 0.9em;" }
+            });
+        });
     }
 
     /**

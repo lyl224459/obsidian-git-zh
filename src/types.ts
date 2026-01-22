@@ -1,5 +1,16 @@
 import type { LineAuthorSettings } from "src/editor/lineAuthor/model";
 
+export interface ObsidianGitPlugin extends Plugin {
+    deviceType: 'desktop' | 'tablet' | 'mobile';
+    getMobilePerformanceStats(): {
+        totalOperations: number;
+        averageTime: number;
+        performanceProfile: string;
+        repositoryComplexity: string;
+        cacheHitRate: number;
+    };
+}
+
 export interface ObsidianGitSettings {
     commitMessage: string;
     autoCommitMessage: string;
@@ -57,7 +68,12 @@ export interface ObsidianGitSettings {
     refreshSourceControl: boolean;
     basePath: string;
     showedMobileNotice: boolean;
+    tabletMultitaskEnabled?: boolean;
     refreshSourceControlTimer: number;
+
+    // 移动端优化设置
+    mobileOptimizationsEnabled: boolean;
+    mobileHistoryViewCount: number;
     showBranchStatusBar: boolean;
     lineAuthor: LineAuthorSettings;
     setLastSaveToLastCommit: boolean;

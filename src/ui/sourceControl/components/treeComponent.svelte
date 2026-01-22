@@ -5,13 +5,11 @@
     import type ObsidianGit from "src/main";
     import type { StatusRootTreeItem, TreeItem } from "src/types";
     import { FileType } from "src/types";
-    import { slide } from "svelte/transition";
     import type GitView from "../sourceControl";
     import FileComponent from "./fileComponent.svelte";
     import PulledFileComponent from "./pulledFileComponent.svelte";
     import StagedFileComponent from "./stagedFileComponent.svelte";
     import { arrayProxyWithNewLength, mayTriggerFileMenu } from "src/utils";
-    import TooManyFilesComponent from "./tooManyFilesComponent.svelte";
     interface Props {
         hierarchy: StatusRootTreeItem;
         plugin: ObsidianGit;

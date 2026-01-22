@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { setIcon, type EventRef } from "obsidian";
+    import { setIcon, type EventRef, Platform } from "obsidian";
     import { SimpleGit } from "src/gitManager/simpleGit";
     import type ObsidianGit from "src/main";
-    import type { LogEntry } from "src/types";
+    import type { LogEntry, ObsidianGitPlugin } from "src/types";
     import { onDestroy, onMount } from "svelte";
     import LogComponent from "./components/logComponent.svelte";
     import type HistoryView from "./historyView";
@@ -20,6 +20,16 @@
     let refreshRef: EventRef;
 
     let layoutBtn: HTMLElement | undefined = $state();
+
+    // 获取设备类型和响应式变量
+    let deviceType = $derived((plugin as ObsidianGitPlugin).deviceType);
+    let isMobile = $derived(deviceType === 'mobile');
+    let isTablet = $derived(deviceType === 'tablet');
+    let isSmallScreen = $derived(isMobile || (isTablet && window.innerWidth < 768));
+
+    // 响应式布局变量
+    let _buttonSize = $derived(isSmallScreen ? 'compact' : 'normal');
+    let showButtonLabels = $derived(isSmallScreen);
 
     $effect(() => {
         if (layoutBtn) {
@@ -69,9 +79,20 @@
         }
         loading = true;
         const isSimpleGit = plugin.gitManager instanceof SimpleGit;
+        const deviceType = (plugin as ObsidianGitPlugin).deviceType;
         let limit;
         if ((logs?.length ?? 0) == 0) {
-            limit = isSimpleGit ? 50 : 10;
+            // 根据设备类型优化初始加载量
+            if (deviceType === 'tablet') {
+                // 平板设备可以加载更多数据
+                limit = isSimpleGit ? 40 : 15;
+            } else if (deviceType === 'mobile') {
+                // 手机设备减少加载量
+                limit = isSimpleGit ? 20 : 5;
+            } else {
+                // 桌面设备
+                limit = isSimpleGit ? 50 : 10;
+            }
         } else {
             limit = logs!.length;
         }
@@ -85,7 +106,8 @@
         }
         loading = true;
         const isSimpleGit = plugin.gitManager instanceof SimpleGit;
-        const limit = isSimpleGit ? 50 : 10;
+        const isMobile = Platform.isMobileApp;
+        const limit = isSimpleGit ? (isMobile ? 15 : 50) : (isMobile ? 5 : 10);
         const newLogs = await plugin.gitManager.log(
             undefined,
             false,
@@ -101,10 +123,10 @@
 
 <div class="git-view">
     <div class="nav-header">
-        <div class="nav-buttons-container">
+        <div class="nav-buttons-container history-toolbar {isSmallScreen ? 'history-toolbar-compact' : isTablet ? 'history-toolbar-tablet' : ''}">
             <div
                 id="layoutChange"
-                class="clickable-icon nav-action-button"
+                class="clickable-icon nav-action-button history-button"
                 aria-label="Change Layout"
                 data-icon={showTree ? "list-tree" : "folder-closed"}
                 bind:this={buttons[0]}
@@ -125,10 +147,12 @@
                     plugin.settings.treeStructure = showTree;
                     void plugin.saveSettings();
                 }}
-            ></div>
+            >
+                {#if showButtonLabels}<span>布局</span>{/if}
+            </div>
             <div
                 id="refresh"
-                class="clickable-icon nav-action-button"
+                class="clickable-icon nav-action-button history-button"
                 class:loading
                 data-icon="refresh-cw"
                 aria-label="Refresh"
@@ -142,13 +166,15 @@
                     }
                 }}
                 onclick={triggerRefresh}
-            ></div>
+            >
+                {#if showButtonLabels}<span>刷新</span>{/if}
+            </div>
         </div>
     </div>
 
     {#if logs}
         <div class="nav-files-container">
-            {#each logs as log, i}
+            {#each logs as log}
                 <LogComponent log={log} {view} plugin={plugin} />
             {/each}
             <div id="sentinel"></div>
@@ -174,6 +200,54 @@
         display: flex;
         gap: 4px;
         justify-content: flex-end;
+    }
+
+    /* 响应式按钮布局 */
+    .history-toolbar-compact {
+        flex-direction: column;
+        gap: 6px;
+        align-items: stretch;
+    }
+
+    .history-toolbar-tablet {
+        gap: 6px;
+    }
+
+    .history-toolbar-compact .nav-action-button,
+    .history-toolbar-tablet .nav-action-button {
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+    }
+
+    /* 移动端优化 */
+    @media (max-width: 768px) {
+        .nav-header {
+            padding: 6px;
+        }
+
+        .nav-buttons-container {
+            gap: 4px;
+        }
+
+        .nav-action-button {
+            min-height: 44px; /* 更好的触摸目标 */
+            padding: 8px;
+        }
+    }
+
+    /* 平板优化 */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .nav-header {
+            padding: 8px;
+        }
+
+        .nav-action-button {
+            min-height: 40px;
+            padding: 6px;
+        }
     }
     
     .git-view {

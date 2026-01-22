@@ -29,6 +29,11 @@
     let isCollapsed = $state(true);
     let closed = $state<Record<string, boolean>>({});
 
+    function formatDate(date: Date): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        return moment(date).format(plugin.settings.commitDateFormat) as string;
+    }
+
     function authorToString(log: LogEntry) {
         const name = log.author.name;
         if (plugin.settings.authorInHistoryView == "full") {
@@ -48,7 +53,7 @@
         <div
             class="tree-item-self is-clickable nav-folder-title"
             aria-label={`${log.refs.length > 0 ? log.refs.join(", ") + "\n" : ""}${log.author?.name}
-${moment(log.date).format(plugin.settings.commitDateFormat)}
+${formatDate(log.date)}
 ${log.message}`}
             data-tooltip-position={side}
             onclick={() => (isCollapsed = !isCollapsed)}
@@ -84,9 +89,9 @@ ${log.message}`}
                 {/if}
                 {#if plugin.settings.dateInHistoryView}
                     <div class="git-date">
-                        {moment(log.date).format(
+                        {String(moment(log.date).format(
                             plugin.settings.commitDateFormat
-                        )}
+                        ))}
                     </div>
                 {/if}
 

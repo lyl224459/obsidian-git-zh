@@ -37,6 +37,10 @@ export const DEFAULT_SETTINGS: ObsidianGitSettings = {
     changedFilesInStatusBar: false,
     showedMobileNotice: false,
     refreshSourceControlTimer: 7000,
+
+    // 移动端优化默认设置
+    mobileOptimizationsEnabled: true,
+    mobileHistoryViewCount: 20,
     showBranchStatusBar: true,
     setLastSaveToLastCommit: false,
     submoduleRecurseCheckout: false,

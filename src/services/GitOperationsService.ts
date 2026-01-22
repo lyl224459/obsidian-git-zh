@@ -113,7 +113,7 @@ export class GitOperationsService extends BaseService {
             }
 
             // Get commit message
-            let commitMessage = await this.getCommitMessage(options);
+            const commitMessage = await this.getCommitMessage(options);
             if (!commitMessage) {
                 this.plugin.setPluginState({ gitAction: CurrentGitAction.idle });
                 return { success: false, error: new Error("No commit message") };

@@ -3,7 +3,7 @@
     import { t } from "src/i18n";
     import type ObsidianGit from "src/main";
     import type GitCommitSidebarView from "./commitSidebar";
-    import { FileType } from "src/types";
+    import { FileType, ObsidianGitPlugin } from "src/types";
     import { arrayProxyWithNewLength } from "src/utils";
     import { slide } from "svelte/transition";
     import FileComponent from "../sourceControl/components/fileComponent.svelte";
@@ -18,6 +18,12 @@
     }
 
     let { plugin, view }: Props = $props();
+
+    // 获取设备类型和响应式变量
+    let deviceType = $derived((plugin as ObsidianGitPlugin).deviceType);
+    let isMobile = $derived(deviceType === 'mobile');
+    let isTablet = $derived(deviceType === 'tablet');
+    let isSmallScreen = $derived(isMobile || (isTablet && window.innerWidth < 768));
     let loading: boolean = $state(false);
     let status: Status | undefined = $state();
     let commitMessage = $state(plugin.settings.commitMessage);
@@ -368,34 +374,37 @@
             {/if}
         </div>
 
-        <div class="commit-actions">
+        <div class="commit-actions {isSmallScreen ? 'commit-actions-mobile' : isTablet ? 'commit-actions-tablet' : ''}">
             <button
-                class="mod-cta"
+                class="mod-cta commit-btn {isSmallScreen ? 'commit-btn-mobile' : ''}"
                 onclick={commit}
                 disabled={!status || (status.changed.length === 0 && status.staged.length === 0)}
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="svg-icon lucide-check"
-                    style="margin-right: 6px;"
-                >
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                {t("commands.commit")}
+                {#if !isSmallScreen}
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="svg-icon lucide-check"
+                        style="margin-right: 6px;"
+                    >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                {/if}
+                {isSmallScreen ? '提交' : t("commands.commit")}
             </button>
-            <button
-                class="mod-cta"
-                onclick={commitAndSync}
-                disabled={!status || (status.changed.length === 0 && status.staged.length === 0)}
-            >
+            {#if !isSmallScreen || deviceType === 'tablet'}
+                <button
+                    class="mod-cta commit-btn {isSmallScreen ? 'commit-btn-mobile' : ''}"
+                    onclick={commitAndSync}
+                    disabled={!status || (status.changed.length === 0 && status.staged.length === 0)}
+                >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -415,6 +424,7 @@
                 </svg>
                 {t("commands.commit-and-sync")}
             </button>
+            {/if}
         </div>
         
         <div class="quick-actions">
@@ -909,6 +919,17 @@
         margin-bottom: 12px;
     }
 
+    /* 移动端按钮布局优化 */
+    .commit-actions-mobile {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    /* 平板端按钮布局优化 */
+    .commit-actions-tablet {
+        gap: 6px;
+    }
+
     .commit-actions button {
         flex: 1;
         min-width: 120px;
@@ -919,6 +940,20 @@
         border-radius: 4px;
         font-size: var(--font-ui-small);
         font-weight: 500;
+    }
+
+    /* 移动端按钮样式 */
+    .commit-actions-mobile .mod-cta {
+        min-height: 44px; /* 更好的触摸目标 */
+        font-size: 16px; /* 防止iOS缩放 */
+        padding: 12px 16px;
+        width: 100%;
+    }
+
+    /* 平板端按钮样式 */
+    .commit-actions-tablet .mod-cta {
+        min-height: 40px;
+        padding: 10px 14px;
     }
 
     .quick-actions {

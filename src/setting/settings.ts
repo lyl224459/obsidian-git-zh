@@ -109,6 +109,13 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 margin-bottom: 1em;
                 font-size: 1.2em;
                 font-weight: 600;
+                color: var(--text-accent);
+            }
+
+            .git-settings-section h4 {
+                color: var(--text-accent);
+                font-size: 1.1em;
+                font-weight: 600;
             }
 
             .git-device-indicator {
@@ -239,7 +246,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
 
         // 语言设置 - 始终显示
         const languageSection = containerEl.createDiv("git-settings-section");
-        languageSection.createEl("h3", { text: t("settings.heading.basic-settings"), attr: { style: "margin-bottom: 1em; color: var(--text-accent);" } });
+        languageSection.createEl("h3", { text: t("settings.heading.basic-settings") });
 
         new Setting(languageSection)
             .setName(t("settings.language.name"))
@@ -270,7 +277,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         
         if (!gitReady) {
             const gitNotReadySection = containerEl.createDiv("git-settings-section");
-            gitNotReadySection.createEl("h3", { text: t("settings.heading.git-status"), attr: { style: "margin-bottom: 1em; color: var(--text-warning);" } });
+            gitNotReadySection.createEl("h3", { text: t("settings.heading.git-status") });
 
             gitNotReadySection.createEl("p", {
                 text: t("settings.git-not-ready.text"),
@@ -294,8 +301,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     ): void {
         const section = containerEl.createDiv("git-settings-section");
         section.createEl("h3", {
-            text: t("settings.heading.automation-settings"),
-            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+            text: t("settings.heading.automation-settings")
         });
 
         // 分离定时器设置
@@ -426,8 +432,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     private createCommitSection(containerEl: Element, plugin: ObsidianGit): void {
         const section = containerEl.createDiv("git-settings-section");
         section.createEl("h3", {
-            text: t("settings.heading.commit-settings"),
-            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+            text: t("settings.heading.commit-settings")
         });
 
         // 提交消息模板
@@ -480,8 +485,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     ): void {
         const section = containerEl.createDiv("git-settings-section");
         section.createEl("h3", {
-            text: t("settings.heading.view-settings"),
-            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+            text: t("settings.heading.view-settings")
         });
 
         // 历史记录视图设置
@@ -567,8 +571,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     ): void {
         const section = containerEl.createDiv("git-settings-section");
         section.createEl("h3", {
-            text: t("settings.heading.advanced"),
-            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+            text: t("settings.heading.advanced")
         });
 
         // 差异样式设置
@@ -616,8 +619,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         // 调试信息
         const debugSection = containerEl.createDiv("git-settings-section");
         debugSection.createEl("h3", {
-            text: t("settings.heading.debug-info"),
-            attr: { style: "margin-bottom: 1em; color: var(--text-warning);" }
+            text: t("settings.heading.debug-info")
         });
 
         // 调试信息按钮
@@ -1657,8 +1659,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
     ): void {
         const guideSection = containerEl.createDiv("git-settings-section git-guide-section");
         guideSection.createEl("h3", {
-            text: t("settings.heading.quick-start-guide"),
-            attr: { style: "margin-bottom: 1em; color: var(--text-accent);" }
+            text: t("settings.heading.quick-start-guide")
         });
 
         // 快速操作按钮
@@ -1729,10 +1730,10 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
 
         // 使用提示
         const tipsSection = guideSection.createDiv("git-tips-section");
-        tipsSection.createEl("h4", {
-            text: t("settings.heading.usage-tips"),
-            attr: { style: "margin: 1.5em 0 0.5em 0; color: var(--text-normal);" }
+        const tipsTitle = tipsSection.createEl("h4", {
+            text: t("settings.heading.usage-tips")
         });
+        tipsTitle.style.margin = "1.5em 0 0.5em 0";
 
         const tips = [
             t("settings.usage-tips.mobile"),

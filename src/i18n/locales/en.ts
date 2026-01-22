@@ -503,6 +503,8 @@ export default {
             button: "Copy Debug Information",
         },
         "debugging-info": {
+            name: "Debug Information",
+            desc: "Debugging and logging: You can always see the logs of this and every other plugin by opening the console",
             text: "Debugging and logging:\nYou can always see the logs of this and every other plugin by opening the console with",
         },
         "quick-actions": {

@@ -503,6 +503,8 @@ export default {
             button: "复制调试信息",
         },
         "debugging-info": {
+            name: "调试信息",
+            desc: "调试和日志记录：您可以随时通过打开控制台查看此插件和其他所有插件的日志",
             text: "调试和日志记录：\n您可以随时通过打开控制台查看此插件和其他所有插件的日志",
         },
         "quick-actions": {

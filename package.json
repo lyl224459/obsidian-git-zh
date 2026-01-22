@@ -3,6 +3,7 @@
     "version": "2.36.1",
     "description": "Obsidian Git 插件中文版 - Integrate Git version control with automatic backup and other advanced features in Obsidian.md (Chinese Localized)",
     "main": "main.js",
+    "packageManager": "pnpm@9.15.0",
     "scripts": {
         "dev": "node esbuild.config.mjs dev",
         "build": "node esbuild.config.mjs production && pnpm run copy-files",

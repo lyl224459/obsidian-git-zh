@@ -1,0 +1,143 @@
+name: 📦 发布 Obsidian Git 中文版
+
+on:
+  push:
+    tags:
+      - "v*"  # 匹配版本标签，如 v2.36.1
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号 (例如: 2.36.1)'
+        required: true
+        default: 'latest'
+
+env:
+  PLUGIN_ID: git-zh
+  PLUGIN_NAME: obsidian-git-zh
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: 📦 发布插件
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 🔍 发布前验证
+        run: |
+          echo "🔍 执行发布前检查..."
+          pnpm run pre-release
+          echo "✅ 发布前验证通过"
+
+      - name: 📦 生成发布包
+        run: |
+          echo "📦 生成符合Obsidian标准的发布包..."
+          pnpm run package:obsidian
+
+          # 重命名发布包
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${VERSION#v}"  # 移除 v 前缀
+          mv git-zh.zip "${PLUGIN_NAME}-${VERSION}.zip"
+
+          echo "✅ 发布包生成完成: ${PLUGIN_NAME}-${VERSION}.zip"
+
+      - name: 📊 验证发布包
+        run: |
+          echo "📦 验证发布包结构..."
+          ls -la *.zip
+
+          echo ""
+          echo "📁 检查发布包内容:"
+          unzip -l "${PLUGIN_NAME}-${{ github.event.inputs.version || github.ref_name }}.zip" | head -20
+
+          echo ""
+          echo "📏 验证插件文件夹结构:"
+          unzip -l "${PLUGIN_NAME}-${{ github.event.inputs.version || github.ref_name }}.zip" | grep "${PLUGIN_ID}/" || exit 1
+          echo "✅ 发布包结构验证通过"
+
+      - name: 🚀 创建 GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          name: 🌟 Obsidian Git 中文版 ${{ github.event.inputs.version || github.ref_name }}
+          body: |
+            ## 🌟 Obsidian Git 中文版 ${{ github.event.inputs.version || github.ref_name }}
+
+            ### ✨ 主要特性
+            - 🇨🇳 **完整中文界面** - 所有命令、设置、通知均已翻译 (220+ 翻译键)
+            - 🌐 **智能语言切换** - 支持中英文自由切换
+            - 🔄 **自动备份同步** - 定时自动提交和同步
+            - 📊 **可视化管理** - 源代码管理视图、历史记录视图、差异视图
+            - 👤 **行作者功能** - 查看每一行代码的最后修改者信息
+            - 📱 **移动端优化** - 移动设备性能优化和触摸友好界面
+            - ⚙️ **灵活配置** - 丰富的设置选项满足不同需求
+
+            ### 📦 安装方法
+
+            **推荐方式：一键安装**
+            1. 下载 `${{ env.PLUGIN_NAME }}-${{ github.event.inputs.version || github.ref_name }}.zip`
+            2. 解压到您的 Obsidian 插件目录：
+               - Windows: `%APPDATA%\\Obsidian\\Plugins\\`
+               - macOS: `~/Library/Application Support/obsidian/Plugins/`
+               - Linux: `~/.config/obsidian/Plugins/`
+            3. 重启 Obsidian，在设置中启用 "Git 中文版" 插件
+
+            ### 📋 插件信息
+            - **插件ID**: `${{ env.PLUGIN_ID }}`
+            - **版本**: ${{ github.event.inputs.version || github.ref_name }}
+            - **基于原版**: v2.36.1
+            - **最低Obsidian版本**: 0.15.0
+            - **构建日期**: ${{ github.event.head_commit.timestamp }}
+
+            ### 📊 文件校验
+            ```bash
+            # 验证文件完整性
+            unzip -l ${{ env.PLUGIN_NAME }}-${{ github.event.inputs.version || github.ref_name }}.zip
+            ```
+
+            ### 🔗 相关链接
+            - [📖 完整使用指南](${{ github.server_url }}/${{ github.repository }}/blob/master/README.md)
+            - [🚀 快速开始](${{ github.server_url }}/${{ github.repository }}/blob/master/docs/Getting%20Started.md)
+            - [❓ 常见问题](${{ github.server_url }}/${{ github.repository }}/blob/master/docs/Common%20issues.md)
+            - [🌟 原版项目](https://github.com/Vinzent03/obsidian-git)
+
+            ---
+            **💝 如果这个插件对你有帮助，请考虑给项目点个 ⭐ Star！**
+
+            **🐛 发现问题？[提交 Issue](${{ github.server_url }}/${{ github.repository }}/issues)**
+          draft: false
+          prerelease: false
+          files: ${{ env.PLUGIN_NAME }}-${{ github.event.inputs.version || github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🎉 发布完成通知
+        run: |
+          echo "## 🎉 发布成功！" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 发布信息" >> $GITHUB_STEP_SUMMARY
+          echo "- **版本**: ${{ github.event.inputs.version || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **发布时间**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **发布包**: ${{ env.PLUGIN_NAME }}-${{ github.event.inputs.version || github.ref_name }}.zip" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 下载链接" >> $GITHUB_STEP_SUMMARY
+          echo "- [GitHub Releases](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**✅ 插件已成功发布到 Obsidian 社区！** 🎊" >> $GITHUB_STEP_SUMMARY

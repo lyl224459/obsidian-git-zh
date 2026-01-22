@@ -1,0 +1,254 @@
+name: 🔍 代码质量检查
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # 每周一早上8点运行
+    - cron: '0 8 * * 1'
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  # 📊 代码质量分析
+  analyze:
+    name: 📊 代码质量分析
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 📏 代码统计
+        run: |
+          echo "## 📊 代码统计" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 📁 文件统计" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          find src -name "*.ts" -o -name "*.svelte" | wc -l | xargs echo "TypeScript/Svelte 文件:" >> $GITHUB_STEP_SUMMARY
+          find . -name "*.md" | wc -l | xargs echo "Markdown 文件:" >> $GITHUB_STEP_SUMMARY
+          find . -name "*.json" | wc -l | xargs echo "JSON 配置文件:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 📏 代码行数统计" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          find src -name "*.ts" -exec wc -l {} + | tail -1 | awk '{print "TypeScript 代码行数:", $1}' >> $GITHUB_STEP_SUMMARY
+          find src -name "*.svelte" -exec wc -l {} + | tail -1 | awk '{print "Svelte 模板行数:", $1}' >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # 🔍 静态代码分析
+  lint:
+    name: 🔍 静态代码分析
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 🔍 ESLint 检查
+        run: |
+          echo "🔍 运行 ESLint..."
+          pnpm run lint 2>&1 || true
+
+      - name: 💅 Prettier 检查
+        run: |
+          echo "💅 运行 Prettier..."
+          pnpm run format 2>&1 || true
+
+      - name: 📝 TypeScript 检查
+        run: |
+          echo "📝 运行 TypeScript 检查..."
+          pnpm run tsc 2>&1 || true
+
+      - name: 🔎 Svelte 检查
+        run: |
+          echo "🔎 运行 Svelte 检查..."
+          pnpm run svelte 2>&1 || true
+
+  # 🧪 构建验证
+  build-check:
+    name: 🧪 构建验证
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 🧪 构建测试
+        run: |
+          echo "🧪 测试构建过程..."
+          pnpm run build
+
+          echo "📦 验证构建产物..."
+          test -f dist/main.js && echo "✅ main.js" || echo "❌ main.js 缺失"
+          test -f dist/manifest.json && echo "✅ manifest.json" || echo "❌ manifest.json 缺失"
+          test -f dist/styles.css && echo "✅ styles.css" || echo "❌ styles.css 缺失"
+          test -f dist/LICENSE && echo "✅ LICENSE" || echo "❌ LICENSE 缺失"
+          test -f dist/README.md && echo "✅ README.md" || echo "❌ README.md 缺失"
+
+      - name: 📦 打包测试
+        run: |
+          echo "📦 测试打包过程..."
+          pnpm run package:obsidian
+
+          echo "📦 验证发布包..."
+          test -f git-zh.zip && echo "✅ git-zh.zip" || echo "❌ git-zh.zip 缺失"
+
+          echo "📁 验证发布包结构..."
+          unzip -l git-zh.zip | grep "git-zh/" && echo "✅ 正确的文件夹结构" || echo "❌ 文件夹结构错误"
+
+  # 📊 安全检查
+  security:
+    name: 🔒 安全检查
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🔒 运行 Trivy 漏洞扫描
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📤 上传 Trivy 扫描结果
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # 📈 依赖分析
+  dependencies:
+    name: 📈 依赖分析
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📊 分析依赖
+        run: |
+          echo "## 📈 依赖分析报告" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 📦 依赖统计" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          pnpm list --depth=0 | grep -E "(dependencies|devDependencies)" -A 100 | head -20 >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 🚨 过时依赖检查" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          pnpm outdated 2>/dev/null || echo "✅ 所有依赖都是最新的" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # 📋 质量报告
+  report:
+    name: 📋 质量报告
+    runs-on: ubuntu-latest
+    needs: [analyze, lint, build-check, security, dependencies]
+    if: always()
+    steps:
+      - name: 📋 生成质量报告
+        run: |
+          echo "## 🔍 代码质量检查报告" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 检查项目 | 状态 | 详情 |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 📊 代码分析 | ${{ needs.analyze.result }} | [查看详情](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.job }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 静态分析 | ${{ needs.lint.result }} | ESLint + Prettier + TypeScript + Svelte |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 构建验证 | ${{ needs.build-check.result }} | 构建 + 打包测试 |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔒 安全检查 | ${{ needs.security.result }} | Trivy 漏洞扫描 |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📈 依赖分析 | ${{ needs.dependencies.result }} | 依赖更新检查 |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # 计算通过率
+          PASSED=0
+          TOTAL=5
+
+          [[ "${{ needs.analyze.result }}" == "success" ]] && ((PASSED++))
+          [[ "${{ needs.lint.result }}" == "success" ]] && ((PASSED++))
+          [[ "${{ needs.build-check.result }}" == "success" ]] && ((PASSED++))
+          [[ "${{ needs.security.result }}" == "success" ]] && ((PASSED++))
+          [[ "${{ needs.dependencies.result }}" == "success" ]] && ((PASSED++))
+
+          PERCENTAGE=$((PASSED * 100 / TOTAL))
+
+          echo "### 📊 质量评分: ${PERCENTAGE}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ $PERCENTAGE -ge 80 ]; then
+            echo "✅ **代码质量良好** 🎉" >> $GITHUB_STEP_SUMMARY
+          elif [ $PERCENTAGE -ge 60 ]; then
+            echo "⚠️ **代码质量一般，需要改进**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **代码质量需要重点关注**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 相关链接" >> $GITHUB_STEP_SUMMARY
+          echo "- [📋 详细报告](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [🏠 项目主页](${{ github.server_url }}/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY

@@ -49,51 +49,56 @@ jobs:
 
       - name: 📦 创建发布包
         run: |
-          cd dist
-          zip -r ../obsidian-git-zh-${{ github.ref_name }}.zip *
-          cd ..
-          echo "✅ 已创建 ZIP 包"
+          echo "📦 生成符合Obsidian标准的发布包..."
+          pnpm run package:obsidian
+          mv git-zh.zip obsidian-git-zh-${{ github.ref_name }}.zip
+          echo "✅ 已创建符合标准的发布包"
 
       - name: 🚀 创建 GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           name: Obsidian Git 中文版 ${{ github.ref_name }}
           body: |
-            ## 🌏 Obsidian Git 插件中文版
-            
+            ## 🌏 Obsidian Git 中文版 ${{ github.ref_name }}
+
             ### ✨ 主要特性
-            - 🇨🇳 **完整中文界面** - 所有命令、设置、通知均已翻译
+            - 🇨🇳 **完整中文界面** - 所有命令、设置、通知均已翻译 (220+ 翻译键)
             - 🌐 **智能语言切换** - 支持中英文自由切换
-            - 📖 **中文文档** - 完整的中文使用指南
-            
+            - 🔄 **自动备份同步** - 定时自动提交和同步
+            - 📊 **可视化管理** - 源代码管理视图、历史记录视图、差异视图
+            - 👤 **行作者功能** - 查看每一行代码的最后修改者信息
+            - 📱 **移动端优化** - 移动设备性能优化和触摸友好界面
+
             ### 📦 安装方法
-            
-            **方式一：下载 ZIP 包（推荐）**
+
+            **推荐方式：下载发布包**
             1. 下载 `obsidian-git-zh-${{ github.ref_name }}.zip`
-            2. 解压到 `你的笔记库/.obsidian/plugins/obsidian-git-zh/`
-            3. 在 Obsidian 设置中启用插件
-            4. 选择语言为"简体中文"
-            
-            **方式二：下载单个文件**
-            1. 下载 `main.js`、`manifest.json`、`styles.css`
-            2. 复制到 `你的笔记库/.obsidian/plugins/obsidian-git-zh/`
-            3. 在 Obsidian 设置中启用插件
-            
-            详细安装说明请查看 [INSTALL.md](https://github.com/lyl224459/obsidian-git-zh/blob/master/INSTALL.md)
-            
-            ### 📊 版本信息
-            - 基于原版: v2.36.1
-            - 中文版本: ${{ github.ref_name }}
-            - 构建日期: ${{ github.event.head_commit.timestamp }}
-            
+            2. 解压到您的 Obsidian 插件目录：
+               - Windows: `%APPDATA%\\Obsidian\\Plugins\\`
+               - macOS: `~/Library/Application Support/obsidian/Plugins/`
+               - Linux: `~/.config/obsidian/Plugins/`
+            3. 重启 Obsidian，在设置中启用 "Git 中文版" 插件
+
+            **手动安装：**
+            下载发布包中的 `git-zh` 文件夹，复制到插件目录
+
+            ### 📋 插件信息
+            - **插件ID**: `git-zh`
+            - **版本**: ${{ github.ref_name }}
+            - **基于原版**: v2.36.1
+            - **最低Obsidian版本**: 0.15.0
+            - **文件大小**: ~820 KB
+            - **构建日期**: ${{ github.event.head_commit.timestamp }}
+
             ### 🔗 相关链接
-            - [使用指南](https://github.com/lyl224459/obsidian-git-zh/blob/master/CHINESE_VERSION.md)
-            - [汉化说明](https://github.com/lyl224459/obsidian-git-zh/blob/master/LOCALIZATION_CN.md)
-            - [构建文档](https://github.com/lyl224459/obsidian-git-zh/blob/master/BUILD.md)
+            - [📖 使用指南](https://github.com/lyl224459/obsidian-git-zh/blob/master/README.md)
+            - [🚀 快速开始](https://github.com/lyl224459/obsidian-git-zh/blob/master/docs/Getting%20Started.md)
+            - [❓ 常见问题](https://github.com/lyl224459/obsidian-git-zh/blob/master/docs/Common%20issues.md)
+            - [🌟 原版项目](https://github.com/Vinzent03/obsidian-git)
+
+            ---
+            **💝 如果这个插件对你有帮助，请考虑给项目点个 ⭐ Star！**
           draft: false
           prerelease: false
           files: |
-            dist/main.js
-            dist/manifest.json
-            dist/styles.css
             obsidian-git-zh-${{ github.ref_name }}.zip

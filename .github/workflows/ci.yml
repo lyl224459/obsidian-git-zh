@@ -1,0 +1,189 @@
+name: 🚀 CI/CD Pipeline
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  PLUGIN_ID: git-zh
+  PLUGIN_NAME: obsidian-git-zh
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # 🔍 代码质量检查
+  quality:
+    name: 🔍 代码质量检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 📝 类型检查
+        run: pnpm run tsc
+
+      - name: 🔎 Svelte 检查
+        run: pnpm run svelte
+
+      - name: 🔍 ESLint 检查
+        run: pnpm run lint
+
+      - name: 💅 Prettier 格式检查
+        run: pnpm run format
+
+  # 🧪 构建和测试
+  build:
+    name: 🧪 构建和测试
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 🧪 发布前检查
+        run: pnpm run pre-release
+
+      - name: 📦 生成发布包
+        run: pnpm run package:obsidian
+
+      - name: 📊 验证发布包
+        run: |
+          echo "📦 验证发布包结构..."
+          unzip -l git-zh.zip | grep -E "(${PLUGIN_ID}/|main.js|manifest.json|styles.css)" || exit 1
+          echo "✅ 发布包结构验证通过"
+
+          echo ""
+          echo "📏 发布包内容:"
+          unzip -l git-zh.zip
+
+      - name: 📤 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PLUGIN_NAME }}-build
+          path: |
+            dist/
+            git-zh.zip
+          retention-days: 7
+
+  # 🚀 自动发布 (仅在push到master时)
+  release:
+    name: 🚀 自动发布
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 📚 安装依赖
+        run: pnpm install
+
+      - name: 📦 生成最新发布包
+        run: |
+          pnpm run package:obsidian
+          cp git-zh.zip obsidian-git-zh-latest.zip
+
+      - name: 🚀 更新最新Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          name: 🚀 Obsidian Git 中文版 (最新构建)
+          body: |
+            ## 🌟 Obsidian Git 中文版 - 最新开发构建
+
+            ⚠️ **这是一个自动构建版本，仅供测试使用**
+
+            ### 📦 下载
+            - [obsidian-git-zh-latest.zip](https://github.com/lyl224459/obsidian-git-zh/releases/download/latest/obsidian-git-zh-latest.zip)
+
+            ### 📋 构建信息
+            - **构建时间**: ${{ github.event.head_commit.timestamp }}
+            - **提交**: [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            - **分支**: `${{ github.ref_name }}`
+
+            ### ⚠️ 注意事项
+            - 这不是正式发布版本
+            - 可能包含未测试的功能
+            - 建议仅用于测试目的
+
+            ---
+            **正式版本请查看 [Releases](https://github.com/lyl224459/obsidian-git-zh/releases)**
+          draft: false
+          prerelease: true
+          files: obsidian-git-zh-latest.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 📊 报告状态
+  report:
+    name: 📊 工作流报告
+    runs-on: ubuntu-latest
+    needs: [quality, build, release]
+    if: always()
+    steps:
+      - name: 📊 生成报告
+        run: |
+          echo "## 🚀 CI/CD Pipeline 执行报告" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 作业状态" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔍 代码质量检查: ${{ needs.quality.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 构建和测试: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚀 自动发布: ${{ needs.release.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.quality.result }}" = "success" ] && [ "${{ needs.build.result }}" = "success" ]; then
+            echo "### ✅ Pipeline 成功" >> $GITHUB_STEP_SUMMARY
+            echo "所有检查和构建步骤都已成功完成！🎉" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Pipeline 失败" >> $GITHUB_STEP_SUMMARY
+            echo "请检查上述步骤的详细日志。" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 相关链接" >> $GITHUB_STEP_SUMMARY
+          echo "- [📦 构建产物](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [📋 项目主页](${{ github.server_url }}/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY

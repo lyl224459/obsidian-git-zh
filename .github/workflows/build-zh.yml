@@ -36,19 +36,37 @@ jobs:
           pnpm run build
           echo "✅ 构建完成！"
 
-      - name: 📊 验证构建
+      - name: 📦 生成发布包
+        run: |
+          echo "📦 生成符合Obsidian标准的发布包..."
+          pnpm run package:obsidian
+          echo "✅ 发布包生成完成！"
+
+      - name: 📊 验证构建和发布包
         run: |
           echo "📦 检查构建文件..."
           test -f dist/main.js && echo "✅ main.js 存在" || exit 1
           test -f dist/manifest.json && echo "✅ manifest.json 存在" || exit 1
           test -f dist/styles.css && echo "✅ styles.css 存在" || exit 1
-          
+          test -f dist/LICENSE && echo "✅ LICENSE 存在" || exit 1
+          test -f dist/README.md && echo "✅ README.md 存在" || exit 1
+
+          echo ""
+          echo "📦 检查发布包..."
+          test -f git-zh.zip && echo "✅ git-zh.zip 存在" || exit 1
+
+          echo ""
+          echo "📁 验证发布包结构..."
+          unzip -l git-zh.zip | grep -E "(git-zh/|main.js|manifest.json|styles.css)" || exit 1
+          echo "✅ 发布包结构正确！"
+
           echo ""
           echo "📏 文件大小:"
           ls -lh dist/
-          
+          ls -lh git-zh.zip
+
           echo ""
-          echo "✅ 所有构建文件验证通过！"
+          echo "✅ 所有构建和发布文件验证通过！"
 
       - name: 📤 上传构建产物
         uses: actions/upload-artifact@v4
@@ -56,6 +74,15 @@ jobs:
           name: obsidian-git-zh-build
           path: dist/
           retention-days: 7
+
+      - name: 📤 上传发布包
+        uses: actions/upload-artifact@v4
+        with:
+          name: obsidian-git-zh-release
+          path: |
+            git-zh.zip
+            git-zh.tar.gz
+          retention-days: 30
 
   lint:
     name: 🔍 代码检查

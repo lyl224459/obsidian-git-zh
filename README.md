@@ -6,7 +6,7 @@
 
 > Git 版本控制集成 - 支持自动备份和其他高级功能 (完整中文界面)
 
-English | [简体中文](README.md)
+[English (原版)](https://github.com/Vinzent03/obsidian-git/blob/master/README.md) | 简体中文
 
 ## 📖 简介
 

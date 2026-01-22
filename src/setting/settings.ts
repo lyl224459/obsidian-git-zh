@@ -656,160 +656,276 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
 
         // 高级设置
         this.createAdvancedSection(containerEl, plugin);
-            new Setting(containerEl)
-                .setName(t("settings.split-timers.name"))
-                .setDesc(t("settings.split-timers.desc"))
-                .addToggle((toggle) =>
-                    toggle
-                        .setValue(
-                            plugin.settings.differentIntervalCommitAndPush
-                        )
-                        .onChange(async (value) => {
-                            plugin.settings.differentIntervalCommitAndPush =
-                                value;
-                            await plugin.saveSettings();
-                            plugin.automaticsManager.reload("commit", "push");
-                            this.refreshDisplayWithDelay();
-                        })
-                );
+        
+        // 添加快速入门指南
+        this.addQuickStartGuide(containerEl, plugin, isMobileOrTablet);
+    }
 
-            new Setting(containerEl)
-                .setName(t("settings.auto-save-interval.name", { commitOrSync }))
-                .setDesc(
-                    t("settings.auto-save-interval.desc", {
-                        action: plugin.settings.differentIntervalCommitAndPush
-                            ? t("settings.auto-save-interval.action-commit")
-                            : t("settings.auto-save-interval.action-commit-and-sync")
-                    })
-                )
-                .addText((text) => {
-                    text.inputEl.type = "number";
-                    this.setNonDefaultValue({
-                        text,
-                        settingsProperty: "autoSaveInterval",
-                    });
-                    text.setPlaceholder(
-                        String(DEFAULT_SETTINGS.autoSaveInterval)
-                    );
-                    text.onChange(async (value) => {
-                        if (value !== "") {
-                            plugin.settings.autoSaveInterval = Number(value);
-                        } else {
-                            plugin.settings.autoSaveInterval =
-                                DEFAULT_SETTINGS.autoSaveInterval;
-                        }
-                        await plugin.saveSettings();
-                        plugin.automaticsManager.reload("commit");
-                    });
-                });
+    mayDisableSetting(setting: Setting, disable: boolean) {
+        if (disable) {
+            setting.setDisabled(disable);
+            setting.setClass("obsidian-git-disabled");
+        }
+    }
 
-            const autoBackupSetting = new Setting(containerEl)
-                .setName(t("settings.auto-backup-after-file-change.name", { commitOrSync }))
-                .setDesc(
-                    t("settings.auto-backup-after-file-change.desc", {
-                        commitOrSync,
-                        minutes: formatMinutes(plugin.settings.autoSaveInterval)
-                    })
-                )
-                .addToggle((toggle) =>
-                    toggle
-                        .setValue(plugin.settings.autoBackupAfterFileChange)
-                        .onChange(async (value) => {
-                            plugin.settings.autoBackupAfterFileChange = value;
-                            this.refreshDisplayWithDelay();
+    public configureLineAuthorShowStatus(show: boolean) {
+        this.settings.lineAuthor.show = show;
+        void this.plugin.saveSettings();
 
-                            await plugin.saveSettings();
-                            plugin.automaticsManager.reload("commit");
-                        })
-                );
-            this.mayDisableSetting(
-                autoBackupSetting,
-                plugin.settings.setLastSaveToLastCommit
+        if (show) this.plugin.editorIntegration.activateLineAuthoring();
+        else this.plugin.editorIntegration.deactiveLineAuthoring();
+    }
+
+    /**
+     * Persists the setting {@link key} with value {@link value} and
+     * refreshes the line author info views.
+     */
+    public async lineAuthorSettingHandler<
+        K extends keyof ObsidianGitSettings["lineAuthor"],
+    >(key: K, value: ObsidianGitSettings["lineAuthor"][K]): Promise<void> {
+        this.settings.lineAuthor[key] = value;
+        await this.plugin.saveSettings();
+        this.plugin.editorIntegration.lineAuthoringFeature.refreshLineAuthorViews();
+    }
+
+    /**
+     * 添加快速入门指南
+     */
+    private addQuickStartGuide(
+        containerEl: Element,
+        plugin: ObsidianGit,
+        isMobileOrTablet: boolean
+    ): void {
+        const guideSection = containerEl.createDiv("git-settings-section git-guide-section");
+        guideSection.createEl("h3", {
+            text: t("settings.heading.quick-start-guide")
+        });
+
+        // 快速操作按钮
+        const quickActions = guideSection.createDiv("git-quick-actions");
+
+        const actions = [
+            {
+                icon: "📁",
+                title: t("settings.quick-actions.open-source-control.title"),
+                desc: t("settings.quick-actions.open-source-control.desc"),
+                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-source-control-view")
+            },
+            {
+                icon: "📜",
+                title: t("settings.quick-actions.open-history.title"),
+                desc: t("settings.quick-actions.open-history.desc"),
+                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-history-view")
+            },
+            {
+                icon: "🔍",
+                title: t("settings.quick-actions.open-diff.title"),
+                desc: t("settings.quick-actions.open-diff.desc"),
+                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-diff-view")
+            },
+            {
+                icon: "⚡",
+                title: t("settings.quick-actions.commit-now.title"),
+                desc: t("settings.quick-actions.commit-now.desc"),
+                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:commit")
+            }
+        ];
+
+        actions.forEach(action => {
+            const actionBtn = quickActions.createEl("button", {
+                cls: "git-quick-action-btn",
+                attr: {
+                    title: action.desc,
+                    style: "display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-primary); cursor: pointer; transition: all 0.15s ease;"
+                }
+            });
+
+            actionBtn.innerHTML = `
+                <span style="font-size: 20px;">${action.icon}</span>
+                <span style="font-size: 12px; font-weight: 500; color: var(--text-normal);">${action.title}</span>
+                <span style="font-size: 10px; color: var(--text-muted); text-align: center;">${action.desc}</span>
+            `;
+
+            actionBtn.addEventListener("click", () => {
+                try {
+                    action.action();
+                } catch (e) {
+                    console.error("Failed to execute action:", e);
+                    new Notice(t("settings.action-failed"), 3000);
+                }
+            });
+
+            // 添加悬停效果
+            actionBtn.addEventListener("mouseenter", () => {
+                actionBtn.style.background = "var(--background-modifier-hover)";
+                actionBtn.style.borderColor = "var(--interactive-accent)";
+            });
+
+            actionBtn.addEventListener("mouseleave", () => {
+                actionBtn.style.background = "var(--background-primary)";
+                actionBtn.style.borderColor = "var(--background-modifier-border)";
+            });
+        });
+
+        // 使用提示
+        const tipsSection = guideSection.createDiv("git-tips-section");
+        const tipsTitle = tipsSection.createEl("h4", {
+            text: t("settings.heading.usage-tips")
+        });
+        tipsTitle.style.margin = "1.5em 0 0.5em 0";
+
+        const tips = [
+            t("settings.usage-tips.mobile"),
+            t("settings.usage-tips.auto"),
+            t("settings.usage-tips.history"),
+            t("settings.usage-tips.debug")
+        ];
+
+        const tipsList = tipsSection.createEl("ul", {
+            attr: { style: "margin: 0; padding-left: 1.5em;" }
+        });
+
+        tips.forEach(tip => {
+            tipsList.createEl("li", {
+                text: tip,
+                attr: { style: "margin-bottom: 0.5em; color: var(--text-muted); font-size: 0.9em;" }
+            });
+        });
+    }
+
+    /**
+     * 获取调试信息
+     */
+    private getDebugInfo(plugin: ObsidianGit): string {
+        const debugInfo = {
+            version: plugin.manifest.version,
+            settings: plugin.settings,
+            gitManager: plugin.gitManager instanceof SimpleGit ? "SimpleGit" : "IsomorphicGit",
+            deviceType: (plugin as ObsidianGitPlugin).deviceType || "desktop",
+            automaticsEnabled: plugin.automaticsManager?.isEnabled() || false,
+        };
+
+        return JSON.stringify(debugInfo, null, 2);
+    }
+
+    private addLineAuthorInfoSettings() {
+        const baseLineAuthorInfoSetting = new Setting(this.containerEl).setName(
+            t("settings.line-author-show.name")
+        );
+
+        if (
+            !this.plugin.editorIntegration.lineAuthoringFeature.isAvailableOnCurrentPlatform()
+        ) {
+            baseLineAuthorInfoSetting
+                .setDesc(t("settings.line-author-show.only-available-desktop"))
+                .setDisabled(true);
+        }
+
+        baseLineAuthorInfoSetting.descEl.innerHTML = t("settings.line-author-show.desc", {
+            show: this.settings.lineAuthor.show ? t("settings.line-author-show.show") : t("settings.line-author-show.hide")
+        });
+
+        baseLineAuthorInfoSetting.addToggle((tgl) => {
+            tgl.setValue(this.settings.lineAuthor.show).onChange((value) =>
+                this.configureLineAuthorShowStatus(value)
             );
+        });
 
-            const lastSaveSetting = new Setting(containerEl)
-                .setName(t("settings.auto-backup-after-latest-commit.name", { commitOrSync }))
-                .setDesc(
-                    t("settings.auto-backup-after-latest-commit.desc", { commitOrSync })
+        new Setting(this.containerEl)
+            .setName(t("settings.line-author-date-display.name"))
+            .setDesc(t("settings.line-author-date-display.desc"))
+            .addDropdown((dropdown) => {
+                const options: Record<
+                    LineAuthorDateTimeFormatOptions,
+                    string
+                > = {
+                    hide: t("settings.line-author-date-display.options.hide"),
+                    "relative time": t("settings.line-author-date-display.options.relative time"),
+                    "absolute time": t("settings.line-author-date-display.options.absolute time"),
+                    "relative and absolute time": t("settings.line-author-date-display.options.relative and absolute time"),
+                    "custom format": t("settings.line-author-date-display.options.custom format"),
+                };
+                dropdown.addOptions(options);
+                dropdown.setValue(this.settings.lineAuthor.dateTimeFormatOptions);
+
+                dropdown.onChange(async (value) =>
+                    await this.lineAuthorSettingHandler(
+                        "dateTimeFormatOptions",
+                        value as LineAuthorDateTimeFormatOptions
+                    )
+                );
+            });
+
+        new Setting(this.containerEl)
+            .setName(t("settings.line-author-author-display.name"))
+            .setDesc(t("settings.line-author-author-display.desc"))
+            .addDropdown((dropdown) => {
+                const options: Record<LineAuthorDisplay, string> = {
+                    hide: t("settings.line-author-author-display.options.hide"),
+                    initials: t("settings.line-author-author-display.options.initials"),
+                    "first name": t("settings.line-author-author-display.options.first name"),
+                    "last name": t("settings.line-author-author-display.options.last name"),
+                    full: t("settings.line-author-author-display.options.full"),
+                };
+                dropdown.addOptions(options);
+                dropdown.setValue(this.settings.lineAuthor.authorDisplay);
+
+                dropdown.onChange(async (value) =>
+                    this.lineAuthorSettingHandler(
+                        "authorDisplay",
+                        value as LineAuthorDisplay
+                    )
+                );
+            });
+
+        new Setting(this.containerEl)
+            .setName(t("settings.line-author-follow-movement.name"))
+            .setDesc(t("settings.line-author-follow-movement.desc"))
+            .addDropdown((dropdown) => {
+                const options: Record<LineAuthorFollowMovement, string> = {
+                    none: t("settings.line-author-follow-movement.options.none"),
+                    all: t("settings.line-author-follow-movement.options.all"),
+                    newest: t("settings.line-author-follow-movement.options.newest"),
+                };
+                dropdown.addOptions(options);
+                dropdown.setValue(this.settings.lineAuthor.followMovement);
+                dropdown.onChange((value) =>
+                    this.lineAuthorSettingHandler(
+                        "followMovement",
+                        value as LineAuthorFollowMovement
+                    )
+                );
+            });
+        const trackMovement = new Setting(this.containerEl)
+            .setName(t("settings.line-author-follow-movement.name"));
+        trackMovement.descEl.innerHTML = t("settings.line-author-follow-movement.desc", {
+            length: GIT_LINE_AUTHORING_MOVEMENT_DETECTION_MINIMAL_LENGTH
+        });
+        trackMovement.addDropdown((dropdown) => {
+            const options: Record<LineAuthorFollowMovement, string> = {
+                none: t("settings.line-author-follow-movement.options.none"),
+                all: t("settings.line-author-follow-movement.options.all"),
+                newest: t("settings.line-author-follow-movement.options.newest"),
+            };
+            dropdown.addOptions(options);
+            dropdown.setValue(this.settings.lineAuthor.followMovement);
+            dropdown.onChange((value) =>
+                this.lineAuthorSettingHandler(
+                    "followMovement",
+                    value as LineAuthorFollowMovement
                 )
-                .addToggle((toggle) =>
-                    toggle
-                        .setValue(plugin.settings.setLastSaveToLastCommit)
-                        .onChange(async (value) => {
-                            plugin.settings.setLastSaveToLastCommit = value;
-                            await plugin.saveSettings();
-                            plugin.automaticsManager.reload("commit");
-                            this.refreshDisplayWithDelay();
-                        })
-                );
-            this.mayDisableSetting(
-                lastSaveSetting,
-                plugin.settings.autoBackupAfterFileChange
             );
+        });
 
-            const pushIntervalSetting = new Setting(containerEl)
-                .setName(t("settings.auto-push-interval.name"))
-                .setDesc(t("settings.auto-push-interval.desc"))
-                .addText((text) => {
-                    text.inputEl.type = "number";
-                    this.setNonDefaultValue({
-                        text,
-                        settingsProperty: "autoPushInterval",
-                    });
-                    text.setPlaceholder(
-                        String(DEFAULT_SETTINGS.autoPushInterval)
-                    );
-                    text.onChange(async (value) => {
-                        if (value !== "") {
-                            plugin.settings.autoPushInterval = Number(value);
-                        } else {
-                            plugin.settings.autoPushInterval =
-                                DEFAULT_SETTINGS.autoPushInterval;
-                        }
-                        await plugin.saveSettings();
-                        plugin.automaticsManager.reload("push");
-                    });
-                });
-            this.mayDisableSetting(
-                pushIntervalSetting,
-                !plugin.settings.differentIntervalCommitAndPush
-            );
-
-            new Setting(containerEl)
-                .setName(t("settings.auto-pull-interval.name"))
-                .setDesc(t("settings.auto-pull-interval.desc"))
-                .addText((text) => {
-                    text.inputEl.type = "number";
-                    this.setNonDefaultValue({
-                        text,
-                        settingsProperty: "autoPullInterval",
-                    });
-                    text.setPlaceholder(
-                        String(DEFAULT_SETTINGS.autoPullInterval)
-                    );
-                    text.onChange(async (value) => {
-                        if (value !== "") {
-                            plugin.settings.autoPullInterval = Number(value);
-                        } else {
-                            plugin.settings.autoPullInterval =
-                                DEFAULT_SETTINGS.autoPullInterval;
-                        }
-                        await plugin.saveSettings();
-                        plugin.automaticsManager.reload("pull");
-                    });
-                });
-
-            new Setting(containerEl)
-                .setName(t("settings.auto-commit-staged.name", { commitOrSync }))
-                .setDesc(t("settings.auto-commit-staged.desc", { commitOrSync }))
-                .addToggle((toggle) =>
-                    toggle
-                        .setValue(plugin.settings.autoCommitOnlyStaged)
-                        .onChange(async (value) => {
-                            plugin.settings.autoCommitOnlyStaged = value;
-                            await plugin.saveSettings();
-                        })
+        new Setting(this.containerEl)
+            .setName(t("settings.line-author-show-commit-hash.name"))
+            .setDesc(t("settings.line-author-show-commit-hash.desc"))
+            .addToggle((tgl) => {
+                tgl.setValue(this.settings.lineAuthor.showCommitHash);
+                tgl.onChange((value: boolean) =>
+                    this.lineAuthorSettingHandler("showCommitHash", value)
                 );
+            });
 
             new Setting(containerEl)
                 .setName(
@@ -1601,159 +1717,6 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         this.addQuickStartGuide(containerEl, plugin, isMobileOrTablet);
     }
 
-    mayDisableSetting(setting: Setting, disable: boolean) {
-        if (disable) {
-            setting.setDisabled(disable);
-            setting.setClass("obsidian-git-disabled");
-        }
-    }
-
-    public configureLineAuthorShowStatus(show: boolean) {
-        this.settings.lineAuthor.show = show;
-        void this.plugin.saveSettings();
-
-        if (show) this.plugin.editorIntegration.activateLineAuthoring();
-        else this.plugin.editorIntegration.deactiveLineAuthoring();
-    }
-
-    /**
-     * Persists the setting {@link key} with value {@link value} and
-     * refreshes the line author info views.
-     */
-    public async lineAuthorSettingHandler<
-        K extends keyof ObsidianGitSettings["lineAuthor"],
-    >(key: K, value: ObsidianGitSettings["lineAuthor"][K]): Promise<void> {
-        this.settings.lineAuthor[key] = value;
-        await this.plugin.saveSettings();
-        this.plugin.editorIntegration.lineAuthoringFeature.refreshLineAuthorViews();
-    }
-
-    /**
-     * 获取调试信息
-     */
-    private getDebugInfo(plugin: ObsidianGit): string {
-        const debugInfo = {
-            version: plugin.manifest.version,
-            settings: plugin.settings,
-            gitReady: plugin.gitReady,
-            deviceType: (plugin as ObsidianGitPlugin).deviceType,
-            platform: {
-                isDesktop: Platform.isDesktopApp,
-                isMobile: Platform.isMobileApp,
-                userAgent: navigator.userAgent,
-            },
-            gitManager: plugin.gitManager?.constructor.name || 'None',
-            automaticsEnabled: plugin.automaticsManager?.isEnabled() || false,
-        };
-
-        return JSON.stringify(debugInfo, null, 2);
-    }
-
-    /**
-     * 添加快速入门指南
-     */
-    private addQuickStartGuide(
-        containerEl: Element,
-        plugin: ObsidianGit,
-        isMobileOrTablet: boolean
-    ): void {
-        const guideSection = containerEl.createDiv("git-settings-section git-guide-section");
-        guideSection.createEl("h3", {
-            text: t("settings.heading.quick-start-guide")
-        });
-
-        // 快速操作按钮
-        const quickActions = guideSection.createDiv("git-quick-actions");
-
-        const actions = [
-            {
-                icon: "📁",
-                title: t("settings.quick-actions.open-source-control.title"),
-                desc: t("settings.quick-actions.open-source-control.desc"),
-                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-source-control-view")
-            },
-            {
-                icon: "📜",
-                title: t("settings.quick-actions.open-history.title"),
-                desc: t("settings.quick-actions.open-history.desc"),
-                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-history-view")
-            },
-            {
-                icon: "🔍",
-                title: t("settings.quick-actions.open-diff.title"),
-                desc: t("settings.quick-actions.open-diff.desc"),
-                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:open-diff-view")
-            },
-            {
-                icon: "⚡",
-                title: t("settings.quick-actions.commit-now.title"),
-                desc: t("settings.quick-actions.commit-now.desc"),
-                action: () => plugin.app.commands.executeCommandById("obsidian-git-zh:commit")
-            }
-        ];
-
-        actions.forEach(action => {
-            const actionBtn = quickActions.createEl("button", {
-                cls: "git-quick-action-btn",
-                attr: {
-                    title: action.desc,
-                    style: "display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-primary); cursor: pointer; transition: all 0.15s ease;"
-                }
-            });
-
-            actionBtn.innerHTML = `
-                <span style="font-size: 20px;">${action.icon}</span>
-                <span style="font-size: 12px; font-weight: 500; color: var(--text-normal);">${action.title}</span>
-                <span style="font-size: 10px; color: var(--text-muted); text-align: center;">${action.desc}</span>
-            `;
-
-            actionBtn.addEventListener("click", () => {
-                try {
-                    action.action();
-                } catch (e) {
-                    console.error("Failed to execute action:", e);
-                    new Notice(t("settings.action-failed"), 3000);
-                }
-            });
-
-            // 添加悬停效果
-            actionBtn.addEventListener("mouseenter", () => {
-                actionBtn.style.background = "var(--background-modifier-hover)";
-                actionBtn.style.borderColor = "var(--interactive-accent)";
-            });
-
-            actionBtn.addEventListener("mouseleave", () => {
-                actionBtn.style.background = "var(--background-primary)";
-                actionBtn.style.borderColor = "var(--background-modifier-border)";
-            });
-        });
-
-        // 使用提示
-        const tipsSection = guideSection.createDiv("git-tips-section");
-        const tipsTitle = tipsSection.createEl("h4", {
-            text: t("settings.heading.usage-tips")
-        });
-        tipsTitle.style.margin = "1.5em 0 0.5em 0";
-
-        const tips = [
-            t("settings.usage-tips.mobile"),
-            t("settings.usage-tips.auto"),
-            t("settings.usage-tips.history"),
-            t("settings.usage-tips.debug")
-        ];
-
-        const tipsList = tipsSection.createEl("ul", {
-            attr: { style: "margin: 0; padding-left: 1.5em;" }
-        });
-
-        tips.forEach(tip => {
-            tipsList.createEl("li", {
-                text: tip,
-                attr: { style: "margin-bottom: 0.5em; color: var(--text-muted); font-size: 0.9em;" }
-            });
-        });
-    }
-
     /**
      * Ensure, that certain last shown values are persistent in the settings.
      *
@@ -1770,215 +1733,13 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
         }
     }
 
-    private addLineAuthorInfoSettings() {
-        const baseLineAuthorInfoSetting = new Setting(this.containerEl).setName(
-            t("settings.line-author-show.name")
-        );
-
-        if (
-            !this.plugin.editorIntegration.lineAuthoringFeature.isAvailableOnCurrentPlatform()
-        ) {
-            baseLineAuthorInfoSetting
-                .setDesc(t("settings.line-author-show.only-available-desktop"))
-                .setDisabled(true);
-        }
-
-        baseLineAuthorInfoSetting.descEl.innerHTML = t("settings.line-author-show.desc", {
-            link: LINE_AUTHOR_FEATURE_WIKI_LINK
-        });
-
-        baseLineAuthorInfoSetting.addToggle((toggle) =>
-            toggle.setValue(this.settings.lineAuthor.show).onChange((value) => {
-                this.configureLineAuthorShowStatus(value);
-                this.refreshDisplayWithDelay();
-            })
-        );
-
-        if (this.settings.lineAuthor.show) {
-            const trackMovement = new Setting(this.containerEl)
-                .setName(t("settings.line-author-follow-movement.name"))
-                .setDesc("")
-                .addDropdown((dropdown) => {
-                    dropdown.addOptions(<
-                        Record<LineAuthorFollowMovement, string>
-                    >{
-                        inactive: t("settings.line-author-follow-movement.options.inactive"),
-                        "same-commit": t("settings.line-author-follow-movement.options.same-commit"),
-                        "all-commits": t("settings.line-author-follow-movement.options.all-commits"),
-                    });
-                    dropdown.setValue(this.settings.lineAuthor.followMovement);
-                    dropdown.onChange((value) =>
-                        this.lineAuthorSettingHandler(
-                            "followMovement",
-                            value as LineAuthorFollowMovement
-                        )
-                    );
-                });
-            trackMovement.descEl.innerHTML = t("settings.line-author-follow-movement.desc", {
-                length: GIT_LINE_AUTHORING_MOVEMENT_DETECTION_MINIMAL_LENGTH
-            });
-
-            new Setting(this.containerEl)
-                .setName(t("settings.line-author-show-commit-hash.name"))
-                .addToggle((tgl) => {
-                    tgl.setValue(this.settings.lineAuthor.showCommitHash);
-                    tgl.onChange((value: boolean) =>
-                        this.lineAuthorSettingHandler("showCommitHash", value)
-                    );
-                });
-
-            new Setting(this.containerEl)
-                .setName(t("settings.line-author-author-display.name"))
-                .setDesc(t("settings.line-author-author-display.desc"))
-                .addDropdown((dropdown) => {
-                    const options: Record<LineAuthorDisplay, string> = {
-                        hide: t("settings.line-author-author-display.options.hide"),
-                        initials: t("settings.line-author-author-display.options.initials"),
-                        "first name": t("settings.line-author-author-display.options.first name"),
-                        "last name": t("settings.line-author-author-display.options.last name"),
-                        full: t("settings.line-author-author-display.options.full"),
-                    };
-                    dropdown.addOptions(options);
-                    dropdown.setValue(this.settings.lineAuthor.authorDisplay);
-
-                    dropdown.onChange(async (value) =>
-                        this.lineAuthorSettingHandler(
-                            "authorDisplay",
-                            value as LineAuthorDisplay
-                        )
-                    );
-                });
-
-            new Setting(this.containerEl)
-                .setName(t("settings.line-author-date-display.name"))
-                .setDesc(t("settings.line-author-date-display.desc"))
-                .addDropdown((dropdown) => {
-                    const options: Record<
-                        LineAuthorDateTimeFormatOptions,
-                        string
-                    > = {
-                        hide: t("settings.line-author-date-display.options.hide"),
-                        date: t("settings.line-author-date-display.options.date"),
-                        datetime: t("settings.line-author-date-display.options.datetime"),
-                        "natural language": t("settings.line-author-date-display.options.natural language"),
-                        custom: t("settings.line-author-date-display.options.custom"),
-                    };
-                    dropdown.addOptions(options);
-                    dropdown.setValue(
-                        this.settings.lineAuthor.dateTimeFormatOptions
-                    );
-
-                    dropdown.onChange(async (value) => {
-                        await this.lineAuthorSettingHandler(
-                            "dateTimeFormatOptions",
-                            value as LineAuthorDateTimeFormatOptions
-                        );
-                        this.refreshDisplayWithDelay();
-                    });
-                });
-
-            if (this.settings.lineAuthor.dateTimeFormatOptions === "custom") {
-                const dateTimeFormatCustomStringSetting = new Setting(
-                    this.containerEl
-                );
-
-                dateTimeFormatCustomStringSetting
-                    .setName(t("settings.line-author-date-custom-format.name"))
-                    .addText((cb) => {
-                        cb.setValue(
-                            this.settings.lineAuthor.dateTimeFormatCustomString
-                        );
-                        cb.setPlaceholder("YYYY-MM-DD HH:mm");
-
-                        cb.onChange(async (value) => {
-                            await this.lineAuthorSettingHandler(
-                                "dateTimeFormatCustomString",
-                                value
-                            );
-                            dateTimeFormatCustomStringSetting.descEl.innerHTML =
-                                this.previewCustomDateTimeDescriptionHtml(
-                                    value
-                                );
-                        });
-                    });
-
-                dateTimeFormatCustomStringSetting.descEl.innerHTML =
-                    this.previewCustomDateTimeDescriptionHtml(
-                        this.settings.lineAuthor.dateTimeFormatCustomString
-                    );
-            }
-
-            new Setting(this.containerEl)
-                .setName(t("settings.line-author-date-timezone.name"))
-                .addDropdown((dropdown) => {
-                    const options: Record<LineAuthorTimezoneOption, string> = {
-                        "viewer-local": t("settings.line-author-date-timezone.options.viewer-local"),
-                        "author-local": t("settings.line-author-date-timezone.options.author-local"),
-                        utc0000: t("settings.line-author-date-timezone.options.utc0000"),
-                    };
-                    dropdown.addOptions(options);
-                    dropdown.setValue(
-                        this.settings.lineAuthor.dateTimeTimezone
-                    );
-
-                    dropdown.onChange(async (value) =>
-                        this.lineAuthorSettingHandler(
-                            "dateTimeTimezone",
-                            value as LineAuthorTimezoneOption
-                        )
-                    );
-                }).descEl.innerHTML = t("settings.line-author-date-timezone.desc");
-
-            const oldestAgeSetting = new Setting(this.containerEl).setName(
-                t("settings.line-author-oldest-age.name")
-            );
-
-            oldestAgeSetting.descEl.innerHTML =
-                this.previewOldestAgeDescriptionHtml(
-                    this.settings.lineAuthor.coloringMaxAge
-                )[0];
-
-            oldestAgeSetting.addText((text) => {
-                text.setPlaceholder("1y");
-                text.setValue(this.settings.lineAuthor.coloringMaxAge);
-                text.onChange(async (value) => {
-                    const [preview, valid] =
-                        this.previewOldestAgeDescriptionHtml(value);
-                    oldestAgeSetting.descEl.innerHTML = preview;
-                    if (valid) {
-                        await this.lineAuthorSettingHandler(
-                            "coloringMaxAge",
-                            value
-                        );
-                        this.refreshColorSettingsName("oldest");
-                    }
-                });
-            });
-
-            this.createColorSetting("newest");
-            this.createColorSetting("oldest");
-
-            new Setting(this.containerEl)
-                .setName(t("settings.line-author-text-color.name"))
-                .addText((field) => {
-                    field.setValue(this.settings.lineAuthor.textColorCss);
-                    field.onChange(async (value) => {
-                        await this.lineAuthorSettingHandler(
-                            "textColorCss",
-                            value
-                        );
-                    });
-                }).descEl.innerHTML = t("settings.line-author-text-color.desc");
-
-            new Setting(this.containerEl)
-                .setName(t("settings.line-author-ignore-whitespace.name"))
-                .addToggle((tgl) => {
-                    tgl.setValue(this.settings.lineAuthor.ignoreWhitespace);
-                    tgl.onChange((value) =>
-                        this.lineAuthorSettingHandler("ignoreWhitespace", value)
-                    );
-                }).descEl.innerHTML = t("settings.line-author-ignore-whitespace.desc");
-        }
+    /**
+     * Delays the update of the settings UI.
+     * Used when the user toggles one of the settings that control enabled states of other settings. Delaying the update
+     * allows most of the toggle animation to run, instead of abruptly jumping between enabled/disabled states.
+     */
+    private refreshDisplayWithDelay(timeout = 80): void {
+        setTimeout(() => this.display(), timeout);
     }
 
     private createColorSetting(which: "oldest" | "newest") {
@@ -2109,9 +1870,6 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
      * Used when the user toggles one of the settings that control enabled states of other settings. Delaying the update
      * allows most of the toggle animation to run, instead of abruptly jumping between enabled/disabled states.
      */
-    private refreshDisplayWithDelay(timeout = 80): void {
-        setTimeout(() => this.display(), timeout);
-    }
 }
 
 export function pickColor(

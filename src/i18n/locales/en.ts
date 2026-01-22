@@ -363,6 +363,24 @@ export default {
             name: "Show Date",
             desc: "Show the date of the commit in the history view. The {{date}} placeholder format is used to display the date.",
         },
+        "history-view": {
+            name: "History view",
+        },
+        "date-in-history-view": {
+            name: "Show Date in History View",
+            desc: "Show the date of the commit in the history view. The {{date}} placeholder format is used to display the date.",
+        },
+        "commit-date-format": {
+            name: "Commit Date Format",
+            desc: "Format string for displaying commit dates. E.g. \"YYYY-MM-DD HH:mm:ss\". See <a href=\"https://momentjs.com/docs/#/parsing/string-format/\">Moment.js</a> for more formats.",
+        },
+        "source-control-view": {
+            name: "Source control view",
+        },
+        "tree-structure": {
+            name: "Tree Structure",
+            desc: "Use tree structure to display files in the source control view instead of a flat list.",
+        },
         "refresh-source-control": {
             name: "Automatically refresh source control view on file changes",
             desc: "On slower machines this may cause lags. If so, just disable this option.",

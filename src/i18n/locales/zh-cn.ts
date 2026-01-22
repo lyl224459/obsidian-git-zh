@@ -363,6 +363,24 @@ export default {
             name: "显示日期",
             desc: "在历史记录视图中显示提交的日期。使用 {{date}} 占位符格式显示日期。",
         },
+        "history-view": {
+            name: "历史记录视图",
+        },
+        "date-in-history-view": {
+            name: "在历史记录视图中显示日期",
+            desc: "在历史记录视图中显示提交的日期。使用 {{date}} 占位符格式显示日期。",
+        },
+        "commit-date-format": {
+            name: "提交日期格式",
+            desc: "用于显示提交日期的格式字符串。例如 \"YYYY-MM-DD HH:mm:ss\"。请参阅 <a href=\"https://momentjs.com/docs/#/parsing/string-format/\">Moment.js</a> 了解更多格式。",
+        },
+        "source-control-view": {
+            name: "源代码管理视图",
+        },
+        "tree-structure": {
+            name: "树状结构",
+            desc: "在源代码管理视图中使用树状结构显示文件，而不是扁平列表。",
+        },
         "refresh-source-control": {
             name: "文件更改时自动刷新源代码管理视图",
             desc: "在较慢的机器上，这可能会导致延迟。如果是这样，只需禁用此选项。",
